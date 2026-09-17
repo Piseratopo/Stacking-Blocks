@@ -68,13 +68,26 @@ if (get_key_move_left_pressed() && !get_key_move_right_pressed()) {
 	}
 }
 
+// Rotation
+
+var _rotated = false;
+if (variable_instance_exists(id, "rotate")) {
+	if (get_key_rotate_cw_pressed()) {
+		_rotated = rotate(ROTATION_CW);
+	} else if (get_key_rotate_ccw_pressed()) {
+		_rotated = rotate(ROTATION_CCW);
+	} else if (get_key_rotate_180_pressed()) {
+		_rotated = rotate(ROTATION_180);
+	}
+}
+
 // Lock timer 
 
 var _grounded = place_meeting(x, y + CELL_SIZE, obj_border);
 
 if (!is_locked) {
 	if (_grounded) {
-		if (_moved_horizontal && lock_resets < lock_delay_reset) {
+		if ((_moved_horizontal || _rotated) && lock_resets < lock_delay_reset) {
 			alarm[2] = lock_delay;
 			lock_resets += 1;
 		}
@@ -83,3 +96,4 @@ if (!is_locked) {
 		lock_resets = 0;
 	}
 }
+

@@ -15,35 +15,25 @@
 #macro ROTATION_180 2
 
 shape_properties = {
-	"O4": {
-		display_spr: spr_O4,
-		lock_id: [
-			[[0, 1],
-			[2, 3]]
-		],
-		offsets: [
-			[-32, -32]
-		]
-	},
 	"J4": {
 		display_spr: spr_J4,
-		lock_id: [
-			[[4, GRID_EMPTY, GRID_EMPTY],
-			[5, 6, 7]],
-			[[8, 7],
-			[9, GRID_EMPTY],
-			[10, GRID_EMPTY]],
-			[[11, 6, 12],
-			[GRID_EMPTY, GRID_EMPTY, 10]],
-			[[GRID_EMPTY, 4],
-			[GRID_EMPTY, 9],
-			[11, 13]]
-		],
+		lock_id: spr_lock_J4,
 		offsets: [
 			[-48, -48],
 			[-16, -48],
 			[-48, -16],
 			[-48, -48]
 		]
-	}
+	},
+	"L4": {
+		display_spr: spr_L4,
+		lock_spr: spr_lock_L4,
+	},
+	"O4": {
+		display_spr: spr_O4,
+		lock_spr: spr_lock_O4,
+		offsets: [
+			[-32, -32]
+		]
+	},
 };

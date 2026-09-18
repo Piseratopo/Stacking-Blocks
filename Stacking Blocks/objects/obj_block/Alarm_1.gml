@@ -9,7 +9,8 @@ if (move_dir == -1 && !get_key_move_left()) {
 }
 
 if (move_dir != 0) {
-	if (!place_meeting_border(x + move_dir * CELL_SIZE, y)) {
+	var _can_move = (move_dir == -1) ? is_touching_left() : is_touching_right();
+	if (_can_move) {
 		x += move_dir * CELL_SIZE;
 		
 		// Reset lock timer on horizontal move while grounded

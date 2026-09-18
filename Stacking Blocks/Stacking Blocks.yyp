@@ -34,6 +34,7 @@
     {"id":{"name":"scr_macro","path":"scripts/scr_macro/scr_macro.yy",},},
     {"id":{"name":"spr_blocks","path":"sprites/spr_blocks/spr_blocks.yy",},},
     {"id":{"name":"spr_border","path":"sprites/spr_border/spr_border.yy",},},
+    {"id":{"name":"spr_J4","path":"sprites/spr_J4/spr_J4.yy",},},
     {"id":{"name":"spr_L4","path":"sprites/spr_L4/spr_L4.yy",},},
     {"id":{"name":"spr_O4","path":"sprites/spr_O4/spr_O4.yy",},},
   ],

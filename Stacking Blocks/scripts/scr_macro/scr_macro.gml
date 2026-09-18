@@ -25,8 +25,8 @@ shape_properties = {
 			[-32, -32]
 		]
 	},
-	"L4": {
-		display_spr: spr_L4,
+	"J4": {
+		display_spr: spr_J4,
 		lock_id: [
 			[[4, GRID_EMPTY, GRID_EMPTY],
 			[5, 6, 7]],

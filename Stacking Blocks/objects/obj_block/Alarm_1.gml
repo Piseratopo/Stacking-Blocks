@@ -9,7 +9,7 @@ if (move_dir == -1 && !get_key_move_left()) {
 }
 
 if (move_dir != 0) {
-	if (!place_meeting(x + move_dir * CELL_SIZE, y, obj_border)) {
+	if (!place_meeting_border(x + move_dir * CELL_SIZE, y)) {
 		x += move_dir * CELL_SIZE;
 		
 		// Reset lock timer on horizontal move while grounded

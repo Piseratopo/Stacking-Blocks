@@ -72,17 +72,17 @@ rotate = function(_type = ROTATION_CW) {
 	}
 };
 
-rotate_cw = function() {
-	return rotate(ROTATION_CW);
-};
+//rotate_cw = function() {
+//	return rotate(ROTATION_CW);
+//};
 
-rotate_ccw = function() {
-	return rotate(ROTATION_CCW);
-};
+//rotate_ccw = function() {
+//	return rotate(ROTATION_CCW);
+//};
 
-rotate_180 = function() {
-	return rotate(ROTATION_180);
-};
+//rotate_180 = function() {
+//	return rotate(ROTATION_180);
+//};
 
 lock_shape = function() {
 	if (array_length(lock_id) > 0) {

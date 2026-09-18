@@ -16,16 +16,17 @@ if (get_key_soft_drop()) {
 
 var _moved_horizontal = false;
 
+
 if (get_key_move_left_pressed() && !get_key_move_right_pressed()) {
 	move_dir = -1;
-	if (!place_meeting(x - CELL_SIZE, y, obj_border)) {
+	if (!place_meeting_border(x - CELL_SIZE, y)) {
 		x -= CELL_SIZE;
 		_moved_horizontal = true;
 	}
 	alarm[1] = move_DAS;
 } else if (get_key_move_right_pressed() && !get_key_move_left_pressed()) {
 	move_dir = 1;
-	if (!place_meeting(x + CELL_SIZE, y, obj_border)) {
+	if (!place_meeting_border(x + CELL_SIZE, y)) {
 		x += CELL_SIZE;
 		_moved_horizontal = true;
 	}
@@ -53,14 +54,14 @@ if (get_key_move_left_pressed() && !get_key_move_right_pressed()) {
 } else if (move_dir == 0) {
 	if (get_key_move_left() && !get_key_move_right()) {
 		move_dir = -1;
-		if (!place_meeting(x - CELL_SIZE, y, obj_border)) {
+		if (!place_meeting_border(x - CELL_SIZE, y)) {
 			x -= CELL_SIZE;
 			_moved_horizontal = true;
 		}
 		alarm[1] = move_DAS;
 	} else if (get_key_move_right() && !get_key_move_left()) {
 		move_dir = 1;
-		if (!place_meeting(x + CELL_SIZE, y, obj_border)) {
+		if (!place_meeting_border(x + CELL_SIZE, y)) {
 			x += CELL_SIZE;
 			_moved_horizontal = true;
 		}
@@ -71,14 +72,12 @@ if (get_key_move_left_pressed() && !get_key_move_right_pressed()) {
 // Rotation
 
 var _rotated = false;
-if (variable_instance_exists(id, "rotate")) {
-	if (get_key_rotate_cw_pressed()) {
-		_rotated = rotate(ROTATION_CW);
-	} else if (get_key_rotate_ccw_pressed()) {
-		_rotated = rotate(ROTATION_CCW);
-	} else if (get_key_rotate_180_pressed()) {
-		_rotated = rotate(ROTATION_180);
-	}
+if (get_key_rotate_cw_pressed()) {
+	_rotated = rotate(ROTATION_CW);
+} else if (get_key_rotate_ccw_pressed()) {
+	_rotated = rotate(ROTATION_CCW);
+} else if (get_key_rotate_180_pressed()) {
+	_rotated = rotate(ROTATION_180);
 }
 
 // Lock timer 

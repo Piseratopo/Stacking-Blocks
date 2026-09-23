@@ -14,7 +14,7 @@ for (var _r = 0; _r < grid_height; _r++) {
 
 total_lines_cleared = 0;
 
-grid_set = function(_col, _row, _dead_sprite_id) {
+grid_set = function(_col, _row, _shape_name) {
 	if (_row < 0 || _col < 0) exit;
 	
 	// Expand rows
@@ -31,7 +31,7 @@ grid_set = function(_col, _row, _dead_sprite_id) {
 		}
 	}
 	
-	play_grid[_row][_col] = _dead_sprite_id;
+	play_grid[_row][_col] = _shape_name;
 };
 
 grid_get = function(_col, _row) {

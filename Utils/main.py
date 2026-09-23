@@ -89,8 +89,8 @@ def generate_blob_sprites(outside_color, inside_color, border_color='black', out
 
 if __name__ == "__main__":
     # Example using colors similar to Image 2 (Yellows)
-    outside_col = "#F8941D"  # Dark yellow border area
-    inside_col  = "#F8BF7C"  # Light yellow center area
+    outside_col = "#92278F"  # Dark yellow border area
+    inside_col  = "#92578F"  # Light yellow center area
     
     # Generate and save individual sprites
     generate_blob_sprites(outside_col, inside_col, border_color='black')

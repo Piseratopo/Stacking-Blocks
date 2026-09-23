@@ -18,8 +18,8 @@ function get_key_soft_drop() {
 	return keyboard_check(vk_down);
 }
 
-function get_key_hard_drop() {
-	return keyboard_check(vk_space);
+function get_key_hard_drop_pressed() {
+	return keyboard_check_pressed(vk_space);
 }
 
 function get_key_rotate_cw_pressed() {

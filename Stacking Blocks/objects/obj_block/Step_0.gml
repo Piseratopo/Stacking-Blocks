@@ -1,5 +1,12 @@
 if (is_locked) exit; // Dead block-check
 
+// Hard drop
+
+if (get_key_hard_drop_pressed()) {
+	hard_drop();
+	exit;
+}
+
 // Soft drop
 
 if (get_key_soft_drop()) {
@@ -84,15 +91,13 @@ if (get_key_rotate_cw_pressed()) {
 
 var _grounded = place_meeting(x, y + CELL_SIZE, obj_border);
 
-if (!is_locked) {
-	if (_grounded) {
-		if ((_moved_horizontal || _rotated) && lock_resets < lock_delay_reset) {
-			alarm[2] = lock_delay;
-			lock_resets += 1;
-		}
-	} else {
+if (_grounded) {
+	if ((_moved_horizontal || _rotated) && lock_resets < lock_delay_reset) {
 		alarm[2] = lock_delay;
-		lock_resets = 0;
+		lock_resets += 1;
 	}
+} else {
+	alarm[2] = lock_delay;
+	lock_resets = 0;
 }
 

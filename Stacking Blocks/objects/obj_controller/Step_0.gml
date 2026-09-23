@@ -7,10 +7,8 @@ if (!instance_exists(obj_shape)) {
 		shape_name: _chosen_key,
 		shape_data: _shape_props[$ _chosen_key],
 		sprite_index: _shape_props[$ _chosen_key].display_spr,
-		lock_id: _shape_props[$ _chosen_key].lock_id,
-		offsets: _shape_props[$ _chosen_key].offsets,
+      lock_spr: _shape_props[$ _chosen_key].lock_spr,
 		orientation: 0,
-		num_orientations: array_length(_shape_props[$ _chosen_key].lock_id),
 		image_angle: 0,
 		image_speed: 0,
 	});

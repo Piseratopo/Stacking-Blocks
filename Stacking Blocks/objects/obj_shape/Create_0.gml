@@ -11,20 +11,10 @@ if (sprite_yoffset % CELL_SIZE != 0) {
 
 alarm[2] = lock_delay;
 
-rotate = function(_type = ROTATION_CW) {
-	if (is_locked) return false;
-	if (num_orientations <= 1) return false;
-	
-	var _step = 1;
-	if (_type == ROTATION_CW) _step = 1;
-	else if (_type == ROTATION_CCW) _step = -1;
-	else if (_type == ROTATION_180) _step = 2;
-	else _step = _type;
-	
+rotate = function(_step = ROTATION_CW) {
 	var _old_orientation = orientation;
 	var _old_angle = image_angle;
-	var _new_orientation = (orientation + _step) % num_orientations;
-	if (_new_orientation < 0) _new_orientation += num_orientations;
+	var _new_orientation = (orientation + _step) % NUM_ORIENTATIONS;
 	
 	var _new_angle = (360 - _new_orientation * 90) % 360;
 	
@@ -72,49 +62,51 @@ rotate = function(_type = ROTATION_CW) {
 	}
 };
 
-//rotate_cw = function() {
-//	return rotate(ROTATION_CW);
-//};
-
-//rotate_ccw = function() {
-//	return rotate(ROTATION_CCW);
-//};
-
-//rotate_180 = function() {
-//	return rotate(ROTATION_180);
-//};
-
 lock_shape = function() {
-	if (array_length(lock_id) > 0) {
-		var _current_matrix = lock_id[orientation];
-		var _top_left_x = x + offsets[orientation][0];
-		var _top_left_y = y + offsets[orientation][1];
-		
-		var _rows = array_length(_current_matrix);
-		for (var _r = 0; _r < _rows; _r++) {
-			var _cols = array_length(_current_matrix[_r]);
-			for (var _c = 0; _c < _cols; _c++) {
-				var _sub_img = _current_matrix[_r][_c];
-				if (_sub_img >= 0) {
-					var _bx = _top_left_x + _c * CELL_SIZE;
-					var _by = _top_left_y + _r * CELL_SIZE;
-					var _b = instance_create_layer(_bx, _by, "Blocks", obj_block);
-					_b.is_locked = true;
-					_b.alarm[0] = -1;
-					_b.alarm[1] = -1;
-					_b.image_index = _sub_img;
-					_b.image_speed = 0;
-					
-					obj_controller.grid_set(
-						grid_x_to_col(_bx), 
-						grid_y_to_row(_by), 
-						_sub_img
-					);
-				}
+	var _lock_spr = lock_spr;
+	var _half = CELL_SIZE / 2;
+	
+	var _rows = (bbox_bottom - bbox_top) div CELL_SIZE;
+	var _cols = (bbox_right  - bbox_left) div CELL_SIZE;
+	
+	for (var _r = 0; _r < _rows; _r++) {
+		for (var _c = 0; _c < _cols; _c++) {
+			// Sample the CENTER of the cell — safe for pixel-perfect masks
+			var _cx = bbox_left + _c * CELL_SIZE + _half;
+			var _cy = bbox_top  + _r * CELL_SIZE + _half;
+			
+			if (position_meeting(_cx, _cy, self)) {
+				// Block sits at the grid-aligned TOP-LEFT of the cell
+				var _bx = bbox_left + _c * CELL_SIZE;
+				var _by = bbox_top  + _r * CELL_SIZE;
+				
+				instance_create_layer(_bx, _by, "Blocks", obj_block, {
+					is_locked:    true,
+					sprite_index: _lock_spr,
+					image_index:  0,
+					image_speed:  0
+				});
+				
+				obj_controller.grid_set(
+					grid_x_to_col(_bx),
+					grid_y_to_row(_by),
+					shape_name
+				);
 			}
 		}
 	}
 	
 	obj_controller.clear_lines();
 	instance_destroy();
+};
+
+hard_drop = function() {
+	// Move down one cell at a time until grounded
+	while (!place_meeting(x, y + CELL_SIZE, obj_border)) {
+		y += CELL_SIZE;
+	}
+	// Cancel fall / lock timers and lock immediately
+	alarm[0] = -1;
+	alarm[2] = -1;
+	lock_shape();
 };

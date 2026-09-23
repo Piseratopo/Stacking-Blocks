@@ -25,7 +25,6 @@ is_touching_right = function() {
 
 // Lock settings
 
-is_locked = false;
 dead_sprite_id = [];
 lock_delay = fall_delay;
 lock_delay_reset = 15;

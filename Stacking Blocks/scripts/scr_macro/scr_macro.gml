@@ -45,3 +45,18 @@ shape_properties = {
       lock_spr: spr_lock_Z,
    }
 };
+
+block_lock_sprite_map = {
+	"I,I,I,I": 0,  "C,I,I,I": 1,  "I,C,I,I": 2,  "C,C,I,I": 3,
+   "I,I,I,C": 4,  "C,I,I,C": 5,  "I,C,I,C": 6,  "C,C,I,C": 7,
+   "I,I,C,I": 8,  "C,I,C,I": 9,  "I,C,C,I": 10, "C,C,C,I": 11,
+   "I,I,C,C": 12, "C,I,C,C": 13, "I,C,C,C": 14, "C,C,C,C": 15,
+   "V,I,V,I": 16, "V,C,V,I": 17, "V,I,V,C": 18, "V,C,V,C": 19,
+   "H,H,I,I": 20, "H,H,I,C": 21, "H,H,C,I": 22, "H,H,C,C": 23,
+   "I,V,I,V": 24, "I,V,C,V": 25, "C,V,I,V": 26, "C,V,C,V": 27,
+   "I,I,H,H": 28, "C,I,H,H": 29, "I,C,H,H": 30, "C,C,H,H": 31,
+   "V,V,V,V": 32, "H,H,H,H": 33, "O,H,V,I": 34, "O,H,V,C": 35,
+   "H,O,I,V": 36, "H,O,C,V": 37, "I,V,H,O": 38, "C,V,H,O": 39,
+   "V,I,O,H": 40, "V,C,O,H": 41, "O,O,V,V": 42, "O,H,O,H": 43,
+   "V,V,O,O": 44, "H,O,H,O": 45, "O,O,O,O": 46
+};

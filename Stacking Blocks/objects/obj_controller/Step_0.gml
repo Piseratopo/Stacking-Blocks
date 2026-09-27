@@ -14,3 +14,11 @@ if (!instance_exists(obj_shape)) {
 	});
 }
 
+if (finished_locking_shape) {
+	with (obj_block) {
+		if (is_locked) {
+			set_block_lock_sprite();
+		}
+	}
+	finished_locking_shape = false;
+}

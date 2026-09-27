@@ -84,7 +84,8 @@ lock_shape = function() {
 					is_locked:    true,
 					sprite_index: _lock_spr,
 					image_index:  0,
-					image_speed:  0
+					image_speed:  0,
+               block_name: shape_name 
 				});
 				
 				obj_controller.grid_set(
@@ -97,6 +98,7 @@ lock_shape = function() {
 	}
 	
 	obj_controller.clear_lines();
+	obj_controller.finished_locking_shape = true;
 	instance_destroy();
 };
 

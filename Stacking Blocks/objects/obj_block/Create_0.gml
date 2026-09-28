@@ -9,8 +9,7 @@ alarm[0] = fall_delay;
 
 // Horizontal movements
 
-move_DAS = game_get_speed(gamespeed_fps) div 3;
-//move_ARR = max(1, game_get_speed(gamespeed_fps) div 20);
+move_DAS = 10;
 move_ARR = 1;
 move_arr = move_ARR;
 move_dir = 0;
@@ -68,6 +67,6 @@ set_block_lock_sprite = function() {
    
    var _key = _tl + "," + _tr + "," + _bl + "," + _br;
    show_debug_message(_key);
-	
+
 	image_index = global.block_lock_sprite_map[$ _key];
 }

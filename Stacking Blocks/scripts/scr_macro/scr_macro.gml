@@ -2,13 +2,13 @@
 #macro CELL_SIZE sprite_get_width(spr_lock_I)
 #macro NUM_ORIENTATIONS 4
 
-#macro SHAPE_SPAWN_X 320
-#macro SHAPE_SPAWN_Y 0
-
 #macro GRID_WIDTH 10
 #macro GRID_HEIGHT 20
-#macro GRID_START_X 160
-#macro GRID_BOTTOM_Y 672
+#macro GRID_START_X 480
+#macro GRID_BOTTOM_Y 2016
+#macro SHAPE_SPAWN_X (GRID_START_X + CELL_SIZE * (GRID_WIDTH / 2))
+#macro SHAPE_SPAWN_Y (GRID_BOTTOM_Y - (GRID_HEIGHT + 1) * CELL_SIZE)
+
 #macro GRID_EMPTY -1
 
 #macro ROTATION_CW 1

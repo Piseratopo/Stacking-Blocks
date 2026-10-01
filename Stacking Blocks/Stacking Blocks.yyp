@@ -45,6 +45,7 @@
     {"id":{"name":"spr_lock_S","path":"sprites/spr_lock_S/spr_lock_S.yy",},},
     {"id":{"name":"spr_lock_T","path":"sprites/spr_lock_T/spr_lock_T.yy",},},
     {"id":{"name":"spr_lock_Z","path":"sprites/spr_lock_Z/spr_lock_Z.yy",},},
+    {"id":{"name":"spr_next_piece_frame","path":"sprites/spr_next_piece_frame/spr_next_piece_frame.yy",},},
     {"id":{"name":"spr_O","path":"sprites/spr_O/spr_O.yy",},},
     {"id":{"name":"spr_S","path":"sprites/spr_S/spr_S.yy",},},
     {"id":{"name":"spr_T","path":"sprites/spr_T/spr_T.yy",},},

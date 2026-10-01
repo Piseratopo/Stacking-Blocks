@@ -5,8 +5,6 @@ grid_height = GRID_HEIGHT;
 grid_start_x = GRID_START_X;
 grid_bottom_y = GRID_BOTTOM_Y;
 
-// Store the grid as a dynamic array containing arrays of length 10,
-// stored from bottom to top. Index 0 represents the bottom-most row.
 play_grid = array_create(grid_height);
 for (var _r = 0; _r < grid_height; _r++) {
 	play_grid[_r] = array_create(grid_width, GRID_EMPTY);
@@ -14,15 +12,28 @@ for (var _r = 0; _r < grid_height; _r++) {
 
 total_lines_cleared = 0;
 
+depth = -100;
+
+get_random_shape = function() {
+	var _keys = struct_get_names(global.shape_properties);
+	return _keys[irandom(array_length(_keys) - 1)];
+};
+
+next_shape_name = get_random_shape();
+
+var _right_border_x = GRID_START_X + (GRID_WIDTH + 1) * CELL_SIZE;
+var _top_border_y = GRID_BOTTOM_Y - (GRID_HEIGHT + 1) * CELL_SIZE;
+
+next_piece_frame_x = _right_border_x + sprite_get_xoffset(spr_next_piece_frame);
+next_piece_frame_y = _top_border_y + sprite_get_yoffset(spr_next_piece_frame);
+
 grid_set = function(_col, _row, _shape_name) {
 	if (_row < 0 || _col < 0) exit;
 	
-	// Expand rows
 	while (array_length(play_grid) <= _row) {
 		array_push(play_grid, array_create(max(grid_width, _col + 1), GRID_EMPTY));
 	}
 	
-	// Expand columns
 	if (_col >= array_length(play_grid[_row])) {
 		var _old_len = array_length(play_grid[_row]);
 		array_resize(play_grid[_row], _col + 1);

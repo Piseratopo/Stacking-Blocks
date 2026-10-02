@@ -29,3 +29,5 @@ view_camera[0] = camera;
 surface_resize(application_surface, viewport_width, viewport_height);
 
 window_set_rectangle(viewport_x, viewport_y, viewport_width, viewport_height);
+
+target_y = camera_y;

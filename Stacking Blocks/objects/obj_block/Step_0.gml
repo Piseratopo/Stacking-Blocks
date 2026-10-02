@@ -89,15 +89,20 @@ if (get_key_rotate_cw_pressed()) {
 
 // Lock timer 
 
-var _grounded = place_meeting(x, y + CELL_SIZE, obj_border);
+if (y > lowest_y) {
+	lowest_y = y;
+	lock_resets = 0;
+}
 
+var _grounded = place_meeting(x, y + CELL_SIZE, obj_border);
 if (_grounded) {
 	if ((_moved_horizontal || _rotated) && lock_resets < lock_delay_reset) {
 		alarm[2] = lock_delay;
 		lock_resets += 1;
+		show_debug_message(lock_resets);
 	}
 } else {
+	// Airborne piece: refresh lock delay without resetting lock_resets
 	alarm[2] = lock_delay;
-	lock_resets = 0;
 }
 

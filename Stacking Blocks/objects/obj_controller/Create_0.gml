@@ -19,6 +19,17 @@ get_random_shape = function() {
 	return _keys[irandom(array_length(_keys) - 1)];
 };
 
+get_spawn_y = function() {
+	var _top_y = GRID_BOTTOM_Y - (GRID_HEIGHT + 1) * CELL_SIZE;
+	with (obj_block) {
+		if (is_locked && y - 5 * CELL_SIZE < _top_y) {
+			_top_y = y - 5 * CELL_SIZE;
+		}
+	}
+
+	return _top_y;
+};
+
 next_shape_name = get_random_shape();
 
 var _right_border_x = GRID_START_X + (GRID_WIDTH + 1) * CELL_SIZE;

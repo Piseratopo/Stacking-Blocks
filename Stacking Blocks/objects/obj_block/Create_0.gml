@@ -28,6 +28,7 @@ dead_sprite_id = [];
 lock_delay = fall_delay;
 lock_delay_reset = 15;
 lock_resets = 0;
+lowest_y = y;
 
 // Art and style
 
@@ -50,8 +51,6 @@ set_block_lock_sprite = function() {
    var _s  = check_block(0, CELL_SIZE);
    var _se = check_block(CELL_SIZE, CELL_SIZE);
 	
-	show_debug_message($"{_nw} {_n} {_ne} {_w} {_e} {_sw} {_s} {_se}");
-	
 	var get_quad = function(_horz, _vert, _corner) {
       if (_vert && _horz) return "O";             // Outer Corner
       if (_vert && !_horz) return "V";              // Vertical Edge
@@ -66,7 +65,6 @@ set_block_lock_sprite = function() {
    var _br = get_quad(_s, _e, _se);
    
    var _key = _tl + "," + _tr + "," + _bl + "," + _br;
-   show_debug_message(_key);
 
 	image_index = global.block_lock_sprite_map[$ _key];
 }

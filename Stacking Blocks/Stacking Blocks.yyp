@@ -34,6 +34,8 @@
     {"id":{"name":"scr_grid","path":"scripts/scr_grid/scr_grid.yy",},},
     {"id":{"name":"scr_input","path":"scripts/scr_input/scr_input.yy",},},
     {"id":{"name":"scr_macro","path":"scripts/scr_macro/scr_macro.yy",},},
+    {"id":{"name":"scr_randomizer","path":"scripts/scr_randomizer/scr_randomizer.yy",},},
+    {"id":{"name":"scr_rotation","path":"scripts/scr_rotation/scr_rotation.yy",},},
     {"id":{"name":"spr_border","path":"sprites/spr_border/spr_border.yy",},},
     {"id":{"name":"spr_I","path":"sprites/spr_I/spr_I.yy",},},
     {"id":{"name":"spr_J","path":"sprites/spr_J/spr_J.yy",},},

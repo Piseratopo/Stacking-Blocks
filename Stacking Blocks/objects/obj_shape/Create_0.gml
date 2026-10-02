@@ -18,40 +18,14 @@ rotate = function(_step = ROTATION_CW) {
 	
 	var _new_angle = (360 - _new_orientation * 90) % 360;
 	
-	// Wall kick test offsets: (dx, dy)
-	var _kicks = [
-		[0, 0],
-		[-CELL_SIZE, 0],
-		[CELL_SIZE, 0],
-		[0, -CELL_SIZE],
-		[-CELL_SIZE, -CELL_SIZE],
-		[CELL_SIZE, -CELL_SIZE],
-		[-2 * CELL_SIZE, 0],
-		[2 * CELL_SIZE, 0]
-	];
-	
 	// Temporarily set new angle to check collision with rotated precise mask
 	image_angle = _new_angle;
 	
-	var _success = false;
-	var _chosen_dx = 0;
-	var _chosen_dy = 0;
+	var _kick = wall_kick(shape_name, _old_orientation, _new_orientation);
 	
-	for (var _k = 0; _k < array_length(_kicks); _k++) {
-		var _kx = _kicks[_k][0];
-		var _ky = _kicks[_k][1];
-		
-		if (!place_meeting(x + _kx, y + _ky, obj_border)) {
-			_success = true;
-			_chosen_dx = _kx;
-			_chosen_dy = _ky;
-			break;
-		}
-	}
-	
-	if (_success) {
-		x += _chosen_dx;
-		y += _chosen_dy;
+	if (!is_undefined(_kick)) {
+		x += _kick[0];
+		y += _kick[1];
 		orientation = _new_orientation;
 		image_angle = _new_angle;
 		return true;

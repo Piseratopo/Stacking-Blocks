@@ -1,3 +1,8 @@
+function kick_in_grid_bounds(_kx) {
+	return (bbox_left  + _kx >= GRID_START_X) &&
+	       (bbox_right + _kx <= GRID_START_X + GRID_WIDTH * CELL_SIZE);
+}
+
 function srs_plus_wall_kick(_shape_name = shape_name, _old_orientation = orientation, _new_orientation = 0) {
 	if (_shape_name == "O") {
 		if (!place_meeting(x, y, obj_border)) {
@@ -47,7 +52,7 @@ function srs_plus_wall_kick(_shape_name = shape_name, _old_orientation = orienta
 		var _kx =  _kicks[_k][0] * CELL_SIZE;
 		var _ky = -_kicks[_k][1] * CELL_SIZE;
 		
-		if (!place_meeting(x + _kx, y + _ky, obj_border)) {
+		if (!place_meeting(x + _kx, y + _ky, obj_border) && kick_in_grid_bounds(_kx)) {
 			return [_kx, _ky];
 		}
 	}
@@ -77,7 +82,7 @@ function simple_wall_kick(_shape_name = shape_name, _old_orientation = orientati
 		var _kx = _kicks[_k][0] * CELL_SIZE;
 		var _ky = _kicks[_k][1] * CELL_SIZE;
 		
-		if (!place_meeting(x + _kx, y + _ky, obj_border)) {
+		if (!place_meeting(x + _kx, y + _ky, obj_border) && kick_in_grid_bounds(_kx)) {
 			return [_kx, _ky];
 		}
 	}

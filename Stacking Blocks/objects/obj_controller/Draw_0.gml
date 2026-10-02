@@ -1,3 +1,5 @@
+next_piece_frame_y = get_spawn_y() - sprite_get_yoffset(spr_next_piece_frame) + sprite_get_height(spr_next_piece_frame);
+
 draw_sprite(spr_next_piece_frame, 0, next_piece_frame_x, next_piece_frame_y);
 
 if (next_shape_name != "") {

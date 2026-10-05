@@ -4,13 +4,6 @@ function kick_in_grid_bounds(_kx) {
 }
 
 function srs_plus_wall_kick(_shape_name = shape_name, _old_orientation = orientation, _new_orientation = 0) {
-	if (_shape_name == "O") {
-		if (!place_meeting(x, y, obj_border)) {
-			return [0, 0];
-		}
-		return undefined;
-	}
-	
 	var _key = string(_old_orientation) + "->" + string(_new_orientation);
 	
 	// JLSTZ Tetromino Wall Kick Data
@@ -41,7 +34,24 @@ function srs_plus_wall_kick(_shape_name = shape_name, _old_orientation = orienta
 		"0->3": [ [0, 0], [ 2,  0], [-1,  0], [-1,  2], [ 2, -1] ]
 	};
 	
-	var _table = (_shape_name == "I") ? _kicks_i : _kicks_jlstz;
+	// I2 Domino Wall Kick Data
+	static _kicks_i2 = {
+		"0->1": [ [0, 0], [ 0,  1], [-1,  0], [-1,  1] ],
+		"1->2": [ [0, 0], [ 1,  0], [ 0,  1], [ 1,  0] ],
+		"2->3": [ [0, 0], [ 0, -1], [ 1,  0], [ 1,  1] ],
+		"3->0": [ [0, 0], [-1,  0], [ 0, -1], [-1, -2] ],
+		"0->3": [ [0, 0], [ 1,  0], [ 0,  1], [ 1,  2] ],
+		"1->0": [ [0, 0], [ 0, -1], [ 1,  0], [ 1, -1] ],
+		"2->1": [ [0, 0], [-1,  0], [ 0, -1], [-1,  0] ],
+		"3->2": [ [0, 0], [ 0,  1], [-1,  0], [-1, -1] ]
+	};
+	
+	var _table = _kicks_jlstz;
+	if (_shape_name == "I") {
+		_table = _kicks_i;
+	} else if (_shape_name == "I2") {
+		_table = _kicks_i2;
+	}
 	var _kicks = struct_get(_table, _key);
 	
 	if (is_undefined(_kicks)) {

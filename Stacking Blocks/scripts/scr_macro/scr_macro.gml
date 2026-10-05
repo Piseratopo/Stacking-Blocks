@@ -43,7 +43,19 @@ shape_properties = {
    "Z": {
       display_spr: spr_Z,
       lock_spr: spr_lock_Z,
-   }
+   },
+	"Mn": {
+		display_spr: spr_Mn,
+		lock_spr: spr_lock_Mn
+	},
+	"D2": {
+		display_spr: spr_D2,
+		lock_spr: spr_lock_D2,
+	},
+	"I2": {
+		display_spr: spr_I2,
+		lock_spr: spr_lock_I2
+	}
 };
 
 block_lock_sprite_map = {
@@ -60,3 +72,5 @@ block_lock_sprite_map = {
    "V,I,O,H": 40, "V,C,O,H": 41, "O,O,V,V": 42, "O,H,O,H": 43,
    "V,V,O,O": 44, "H,O,H,O": 45, "O,O,O,O": 46
 };
+
+randomizer_bag = [];

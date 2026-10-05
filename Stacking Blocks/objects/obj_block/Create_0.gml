@@ -30,6 +30,10 @@ lock_delay_reset = 15;
 lock_resets = 0;
 lowest_y = y;
 
+// Rotation limit
+rotation_count = 0;
+rotation_limit = 100;
+
 // Art and style
 
 set_block_lock_sprite = function() {

@@ -87,6 +87,14 @@ if (get_key_rotate_cw_pressed()) {
 	_rotated = rotate(ROTATION_180);
 }
 
+if (_rotated) {
+	rotation_count += 1;
+	if (rotation_count >= rotation_limit) {
+		hard_drop();
+		exit;
+	}
+}
+
 // Lock timer 
 
 if (y > lowest_y) {

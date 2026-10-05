@@ -45,12 +45,10 @@ lock_shape = function() {
 	
 	for (var _r = 0; _r < _rows; _r++) {
 		for (var _c = 0; _c < _cols; _c++) {
-			// Sample the CENTER of the cell — safe for pixel-perfect masks
 			var _cx = bbox_left + _c * CELL_SIZE + _half;
 			var _cy = bbox_top  + _r * CELL_SIZE + _half;
 			
 			if (position_meeting(_cx, _cy, self)) {
-				// Block sits at the grid-aligned TOP-LEFT of the cell
 				var _bx = bbox_left + _c * CELL_SIZE;
 				var _by = bbox_top  + _r * CELL_SIZE;
 				
@@ -77,11 +75,10 @@ lock_shape = function() {
 };
 
 hard_drop = function() {
-	// Move down one cell at a time until grounded
 	while (!place_meeting(x, y + CELL_SIZE, obj_border)) {
 		y += CELL_SIZE;
 	}
-	// Cancel fall / lock timers and lock immediately
+
 	alarm[0] = -1;
 	alarm[2] = -1;
 	lock_shape();

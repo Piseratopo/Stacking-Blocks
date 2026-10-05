@@ -14,10 +14,6 @@ total_lines_cleared = 0;
 
 depth = -100;
 
-get_random_shape = function() {
-	var _keys = struct_get_names(global.shape_properties);
-	return _keys[irandom(array_length(_keys) - 1)];
-};
 
 get_spawn_y = function() {
 	var _top_y = GRID_BOTTOM_Y - (GRID_HEIGHT + 1) * CELL_SIZE;
@@ -52,7 +48,6 @@ spawn_shape = function(_shape_name) {
 
 next_shape_name = get_random_shape();
 
-// Hold piece state
 hold_shape_name = "";
 can_hold = true;
 
@@ -62,7 +57,6 @@ var _top_border_y = GRID_BOTTOM_Y - (GRID_HEIGHT + 1) * CELL_SIZE;
 next_piece_frame_x = _right_border_x + sprite_get_xoffset(spr_next_piece_frame);
 next_piece_frame_y = _top_border_y + sprite_get_yoffset(spr_next_piece_frame);
 
-// Hold frame position right next to the left border
 var _left_border_x = GRID_START_X - CELL_SIZE;
 hold_piece_frame_x = _left_border_x - (sprite_get_width(spr_hold_frame) - sprite_get_xoffset(spr_hold_frame));
 hold_piece_frame_y = _top_border_y + sprite_get_yoffset(spr_hold_frame);
@@ -114,14 +108,14 @@ clear_lines = function() {
 			
 			// 1. Destroy locked blocks in this row
 			with (obj_block) {
-				if (is_locked && abs(y - _row_y) < 2) {
+				if (is_locked && y == _row_y) {
 					instance_destroy();
 				}
 			}
 			
 			// 2. Shift all locked blocks above this row down by one cell
 			with (obj_block) {
-				if (is_locked && (y < _row_y - 2)) {
+				if (is_locked && y < _row_y) {
 					y += CELL_SIZE;
 				}
 			}

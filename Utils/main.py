@@ -65,8 +65,8 @@ def generate_blob_sprites(outside_color, inside_color, border_color='black', out
     layout = [
         ['I,I,I,I', 'C,I,I,I', 'I,C,I,I', 'C,C,I,I', 'I,I,I,C', 'C,I,I,C', 'I,C,I,C', 'C,C,I,C'],
         ['I,I,C,I', 'C,I,C,I', 'I,C,C,I', 'C,C,C,I', 'I,I,C,C', 'C,I,C,C', 'I,C,C,C', 'C,C,C,C'],
-        ['V,I,I,I', 'V,C,V,I', 'V,I,V,C', 'V,C,V,C', 'H,H,I,I', 'H,H,I,C', 'H,H,C,I', 'H,H,C,C'], 
-        ['I,I,V,V', 'I,V,C,V', 'C,V,I,V', 'C,V,C,V', 'I,I,H,H', 'C,I,H,H', 'I,C,H,H', 'C,C,H,H'],
+        ['V,I,V,I', 'V,C,V,I', 'V,I,V,C', 'V,C,V,C', 'H,H,I,I', 'H,H,I,C', 'H,H,C,I', 'H,H,C,C'], 
+        ['I,V,I,V', 'I,V,C,V', 'C,V,I,V', 'C,V,C,V', 'I,I,H,H', 'C,I,H,H', 'I,C,H,H', 'C,C,H,H'],
         ['V,V,V,V', 'H,H,H,H', 'O,H,V,I', 'O,H,V,C', 'H,O,I,V', 'H,O,C,V', 'I,V,H,O', 'C,V,H,O'],
         ['V,I,O,H', 'V,C,O,H', 'O,O,V,V', 'O,H,O,H', 'V,V,O,O', 'H,O,H,O', 'O,O,O,O', None]
     ]
@@ -89,8 +89,8 @@ def generate_blob_sprites(outside_color, inside_color, border_color='black', out
 
 if __name__ == "__main__":
     # Example using colors similar to Image 2 (Yellows)
-    outside_col = "#92278F"  # Dark yellow border area
-    inside_col  = "#92578F"  # Light yellow center area
+    outside_col = "#EE1C24"  # Dark yellow border area
+    inside_col  = "#EE777B"  # Light yellow center area
     
     # Generate and save individual sprites
     generate_blob_sprites(outside_col, inside_col, border_color='black')

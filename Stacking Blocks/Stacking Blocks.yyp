@@ -37,6 +37,7 @@
     {"id":{"name":"scr_randomizer","path":"scripts/scr_randomizer/scr_randomizer.yy",},},
     {"id":{"name":"scr_rotation","path":"scripts/scr_rotation/scr_rotation.yy",},},
     {"id":{"name":"spr_border","path":"sprites/spr_border/spr_border.yy",},},
+    {"id":{"name":"spr_hold_frame","path":"sprites/spr_hold_frame/spr_hold_frame.yy",},},
     {"id":{"name":"spr_I","path":"sprites/spr_I/spr_I.yy",},},
     {"id":{"name":"spr_J","path":"sprites/spr_J/spr_J.yy",},},
     {"id":{"name":"spr_L","path":"sprites/spr_L/spr_L.yy",},},

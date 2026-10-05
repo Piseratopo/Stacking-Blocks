@@ -30,13 +30,42 @@ get_spawn_y = function() {
 	return _top_y;
 };
 
+// Spawn helper
+spawn_shape = function(_shape_name) {
+	var _spawn_y = get_spawn_y();
+	var _shape_props = global.shape_properties;
+	var _inst = instance_create_layer(SHAPE_SPAWN_X, _spawn_y, "Blocks", obj_shape, {
+		shape_name: _shape_name,
+		shape_data: _shape_props[$ _shape_name],
+		sprite_index: _shape_props[$ _shape_name].display_spr,
+		lock_spr: _shape_props[$ _shape_name].lock_spr,
+		orientation: 0,
+		image_angle: 0,
+		image_speed: 0,
+	});
+	
+	with (obj_camera) {
+		target_y = _spawn_y + 10 * CELL_SIZE - camera_height / 2;
+	}
+	return _inst;
+};
+
 next_shape_name = get_random_shape();
+
+// Hold piece state
+hold_shape_name = "";
+can_hold = true;
 
 var _right_border_x = GRID_START_X + (GRID_WIDTH + 1) * CELL_SIZE;
 var _top_border_y = GRID_BOTTOM_Y - (GRID_HEIGHT + 1) * CELL_SIZE;
 
 next_piece_frame_x = _right_border_x + sprite_get_xoffset(spr_next_piece_frame);
 next_piece_frame_y = _top_border_y + sprite_get_yoffset(spr_next_piece_frame);
+
+// Hold frame position right next to the left border
+var _left_border_x = GRID_START_X - CELL_SIZE;
+hold_piece_frame_x = _left_border_x - (sprite_get_width(spr_hold_frame) - sprite_get_xoffset(spr_hold_frame));
+hold_piece_frame_y = _top_border_y + sprite_get_yoffset(spr_hold_frame);
 
 grid_set = function(_col, _row, _shape_name) {
 	if (_row < 0 || _col < 0) exit;

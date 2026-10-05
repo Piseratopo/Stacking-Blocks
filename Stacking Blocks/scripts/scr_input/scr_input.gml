@@ -31,6 +31,10 @@ function get_key_rotate_ccw_pressed() {
 }
 
 function get_key_rotate_180_pressed() {
-	return keyboard_check_pressed(ord("A")) || keyboard_check_pressed(ord("C")) || keyboard_check_pressed(vk_shift);
+	return keyboard_check_pressed(ord("A"));
+}
+
+function get_key_hold_pressed() {
+	return keyboard_check_pressed(vk_shift) || keyboard_check_pressed(ord("C"));
 }
 

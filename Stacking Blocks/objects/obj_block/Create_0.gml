@@ -15,11 +15,11 @@ move_arr = move_ARR;
 move_dir = 0;
 
 is_touching_left = function() {
-	return !place_meeting(x - CELL_SIZE, y, obj_border) and bbox_left - CELL_SIZE >= GRID_START_X;
+	return !place_meeting(x - CELL_SIZE, y, obj_border) && bbox_left - CELL_SIZE >= board_owner.grid_start_x;
 }
 
 is_touching_right = function() {
-	return !place_meeting(x + CELL_SIZE, y, obj_border) and bbox_right <= GRID_START_X + (GRID_WIDTH - 1) * CELL_SIZE;
+	return !place_meeting(x + CELL_SIZE, y, obj_border) && bbox_right <= board_owner.grid_start_x + (board_owner.grid_width - 1) * CELL_SIZE;
 }
 
 // Lock settings
@@ -39,11 +39,12 @@ rotation_limit = 100;
 set_block_lock_sprite = function() {
 	var check_block = function(_dx, _dy) {
 		var _inst = instance_place(x + _dx, y + _dy, obj_block);
-		if (_inst != noone && _inst.is_locked) {
-			return not (_inst.block_name == self.block_name);
+		if (_inst && _inst.is_locked && _inst.board_owner == board_owner) {
+			return not (_inst.block_name == block_name);
 		}
 		return true;
 	};
+
 
 	
 	var _nw = check_block(-CELL_SIZE, -CELL_SIZE);
@@ -72,3 +73,4 @@ set_block_lock_sprite = function() {
 
 	image_index = global.block_lock_sprite_map[$ _key];
 }
+

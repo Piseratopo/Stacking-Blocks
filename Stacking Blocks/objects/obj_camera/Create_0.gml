@@ -17,8 +17,20 @@ view_hport[0] = viewport_height;
 camera_width = viewport_width;
 camera_height = viewport_height;
 
-board_center_x = GRID_START_X + (GRID_WIDTH * CELL_SIZE) / 2;
+if (instance_number(obj_controller) > 1) {
+	var _min_x = 999999;
+	var _max_x = -999999;
+	with (obj_controller) {
+		_min_x = min(_min_x, grid_start_x);
+		_max_x = max(_max_x, grid_start_x + grid_width * CELL_SIZE);
+	}
+	board_center_x = (_min_x + _max_x) / 2;
+} else {
+	board_center_x = obj_controller.grid_start_x + (obj_controller.grid_width * CELL_SIZE) / 2;
+}
 board_center_y = GRID_BOTTOM_Y - (GRID_HEIGHT * CELL_SIZE) / 2;
+
+
 
 camera_x = board_center_x - (camera_width / 2);
 camera_y = board_center_y - (camera_height / 2);

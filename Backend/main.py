@@ -12,11 +12,10 @@ room_lock = threading.RLock()
 
 def generate_room_code():
     chars = "ABCDEFGHJKLMNPQRSTUVWXYZ"  # Omitting 'I' and 'O' to avoid visual confusion
-    for _ in range(1000):
-        code = "".join(random.choices(chars, k=4))
-        if code not in rooms_by_code:
-            return code
-    return "".join(random.choices(chars, k=5))
+    code = "ABCDEFG"
+    while code in rooms_by_code:
+        code = "".join(random.choices(chars, k=7))
+    return code
 
 
 class Room:

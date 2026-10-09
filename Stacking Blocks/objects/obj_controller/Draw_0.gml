@@ -36,3 +36,10 @@ if (hold_shape_name != "") {
 	}
 }
 
+// Draw incoming garbage danger gauge
+if (incoming_garbage > 0) {
+	var _meter_x = grid_start_x - 8;
+	var _meter_bottom_y = grid_bottom_y;
+	var _meter_height = min(incoming_garbage, grid_height) * CELL_SIZE;
+	draw_rectangle_colour(_meter_x - 6, _meter_bottom_y - _meter_height, _meter_x, _meter_bottom_y, c_red, c_red, c_orange, c_orange, false);
+}

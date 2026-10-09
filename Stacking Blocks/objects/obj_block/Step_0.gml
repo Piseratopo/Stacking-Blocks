@@ -1,4 +1,6 @@
 if (is_locked) exit; // Dead block-check
+if (!board_owner.is_local) exit; // Remote player block
+
 
 // Hard drop
 

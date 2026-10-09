@@ -3,7 +3,7 @@ event_inherited();
 orientation = 0;
 
 if (sprite_xoffset % CELL_SIZE != 0) {
-	x = round((x - (CELL_SIZE / 2) - GRID_START_X) / CELL_SIZE) * CELL_SIZE + GRID_START_X + (CELL_SIZE / 2);
+	x = round((x - (CELL_SIZE / 2) - board_owner.grid_start_x) / CELL_SIZE) * CELL_SIZE + board_owner.grid_start_x + (CELL_SIZE / 2);
 }
 if (sprite_yoffset % CELL_SIZE != 0) {
 	y = round((y - (CELL_SIZE / 2)) / CELL_SIZE) * CELL_SIZE + (CELL_SIZE / 2);
@@ -53,26 +53,29 @@ lock_shape = function() {
 				var _by = bbox_top  + _r * CELL_SIZE;
 				
 				instance_create_layer(_bx, _by, "Blocks", obj_block, {
+					board_owner:  board_owner,
 					is_locked:    true,
 					sprite_index: _lock_spr,
 					image_index:  0,
 					image_speed:  0,
-               block_name: shape_name 
+					block_name:   shape_name 
 				});
 				
-				obj_controller.grid_set(
-					grid_x_to_col(_bx),
-					grid_y_to_row(_by),
+				board_owner.grid_set(
+					grid_x_to_col(_bx, board_owner.grid_start_x),
+					grid_y_to_row(_by, board_owner.grid_bottom_y),
 					shape_name
 				);
 			}
 		}
 	}
 	
-	obj_controller.clear_lines();
-	obj_controller.finished_locking_shape = true;
+	board_owner.clear_lines();
+	board_owner.finished_locking_shape = true;
+	board_owner.current_shape = noone;
 	instance_destroy();
 };
+
 
 hard_drop = function() {
 	while (!place_meeting(x, y + CELL_SIZE, obj_border)) {
@@ -83,3 +86,4 @@ hard_drop = function() {
 	alarm[2] = -1;
 	lock_shape();
 };
+

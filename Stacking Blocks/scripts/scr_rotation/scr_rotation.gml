@@ -1,7 +1,7 @@
 function kick_in_grid_bounds(_kx, _ky = 0) {
-	return (bbox_left   + _kx >= GRID_START_X) &&
-	       (bbox_right  + _kx <= GRID_START_X + GRID_WIDTH * CELL_SIZE) &&
-	       (bbox_bottom + _ky <= GRID_BOTTOM_Y);
+	return (bbox_left   + _kx >= board_owner.grid_start_x) &&
+	       (bbox_right  + _kx <= board_owner.grid_start_x + board_owner.grid_width * CELL_SIZE) &&
+	       (bbox_bottom + _ky <= board_owner.grid_bottom_y);
 }
 
 function srs_plus_wall_kick(_shape_name = shape_name, _old_orientation = orientation, _new_orientation = 0) {

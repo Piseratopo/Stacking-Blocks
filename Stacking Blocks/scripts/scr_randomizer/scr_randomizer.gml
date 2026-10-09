@@ -15,10 +15,10 @@ function randomizer_7_bag() {
 }
 
 function randomizer_custom() {
-	var _keys = ["I2", "Mn", "D2"];
+	var _keys = ["I2", "I", "O"];
 	return _keys[irandom(array_length(_keys) - 1)];
 }
 
 function get_random_shape() {
-	return randomizer_custom();
+	return randomizer_all_random();
 }

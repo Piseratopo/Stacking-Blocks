@@ -1,160 +1,208 @@
 import socket
 import threading
 import json
+import traceback
 
 userdata = {}
 clientlist = []
 userevents = {}
-userdata = {}
 use = {}
 prev = {}
 limit = False
 defaultlimit = 4096
 debug = False
 splitter = "[{//V//}]"
+lock = threading.RLock()
 
-def savevariable(name,data,client):
-    global userdata
-    userdata[str(client)][name] = data
 
-def callvariable(name,client):
+def savevariable(name, data, client):
     global userdata
-    if name in userdata[str(client)]:
-        return userdata[str(client)][name]
-    else:
+    with lock:
+        if str(client) not in userdata:
+            userdata[str(client)] = {}
+        userdata[str(client)][name] = data
+
+
+def callvariable(name, client):
+    global userdata
+    with lock:
+        if str(client) in userdata and name in userdata[str(client)]:
+            return userdata[str(client)][name]
         return None
-def callvariablelist(name,data):
+
+
+def callvariablelist(name, data):
     global userdata
     global clientlist
     templist = []
-    for c in clientlist:
-        if name in userdata[str(c)]:
-            if userdata[str(c)][name] == data:
-                templist.append(c)
+    with lock:
+        for c in clientlist:
+            if str(c) in userdata and name in userdata[str(c)]:
+                if userdata[str(c)][name] == data:
+                    templist.append(c)
     return templist
 
 
-def addfunc(event,func):
+def addfunc(event, func):
     global use
-    use[event] = func
+    with lock:
+        use[event] = func
+
 
 def channel(args1):
     def otherchannel(function):
         global use
-        use[args1] = function
+        with lock:
+            use[args1] = function
+        return function
 
     return otherchannel
 
-def emit(event,message,client):
-    global splitter
-    tempdata = {}
-    tempdata[event] = message
-    tempdata['identify'] = event
-    message = json.dumps(tempdata)+splitter
-    client.send(message.encode('utf-8'))
 
-def broadcast(event,message):
-    global clientlist
+def emit(event, message, client):
     global splitter
-    tempdata = {}
-    tempdata[event] = message
-    tempdata['identify'] = event
-    message = json.dumps(tempdata)+splitter
-    for c in clientlist:
-        c.send(message.encode('utf-8'))
+    tempdata = {
+        event: message,
+        'identify': event
+    }
+    encoded = (json.dumps(tempdata) + splitter).encode('utf-8')
+    try:
+        client.sendall(encoded)
+        return True
+    except Exception as e:
+        if debug:
+            print(f"[suspengine] emit failed to {client}: {e}")
+        return False
+
+
+def broadcast(event, message, exclude=None):
+    global clientlist
+    with lock:
+        targets = list(clientlist)
+    for c in targets:
+        if exclude is not None and c == exclude:
+            continue
+        emit(event, message, c)
+
+
 def disconnect(client):
-    client.close()
+    try:
+        client.close()
+    except Exception:
+        pass
 
-def handleclient(c,addr):
-    global clientlist
-    global userevents
-    global splitter
-    global use
-    global prev
-    global limit
-    global defaultlimit
-    global debug
+
+def _cleanup_client(c, addr):
+    global clientlist, userdata, prev, use
+    with lock:
+        if c in clientlist:
+            clientlist.remove(c)
+        userdata.pop(str(c), None)
+        prev.pop(str(c), None)
+    
+    try:
+        c.close()
+    except Exception:
+        pass
+
+    if 'disconnect' in use:
+        try:
+            use['disconnect'](c, addr)
+        except Exception as e:
+            if debug:
+                print(f"[suspengine] disconnect hook error: {e}")
+
+
+def handleclient(c, addr):
+    global clientlist, userevents, splitter, use, prev, limit, defaultlimit, debug
     while True:
         try:
             data = c.recv(defaultlimit)
             if not data:
-                clientlist.remove(c)
-                if 'disconnect' in use:
-                    use['disconnect'](c,addr)
-                break;
-        except:
-            clientlist.remove(c)
-            if 'disconnect' in use:
-                use['disconnect'](c,addr)
-            break;
-        stuff = []
-        try:
-            data = data.decode('utf-8')
+                _cleanup_client(c, addr)
+                break
+        except Exception:
+            _cleanup_client(c, addr)
+            break
 
-            if not limit:
-                data = prev[str(c)] + data
-                stuff = data.split(splitter)
-                if len(stuff) > 1:
+        packets = []
+        try:
+            decoded_chunk = data.decode('utf-8', errors='ignore')
+            with lock:
+                buffer = prev.get(str(c), "") + decoded_chunk
+                parts = buffer.split(splitter)
+                if not limit:
+                    prev[str(c)] = parts[-1]
+                    packets = parts[:-1]
+                else:
+                    packets = [p for p in parts if p]
                     prev[str(c)] = ""
-                if not "" in stuff:
-                    prev[str(c)] = stuff[len(stuff)-1]
-                    del stuff[len(stuff)-1]
-                    if debug:
-                        print("Your packet is bigger than the default size limit")
-                stuff.remove("")
-            else:
-                stuff = data.split(splitter)
-                stuff.remove("")
-        except:
-            pass
-        for s in stuff:
-            #print(stuff)
-            tempdat = json.loads(s)
-            for keys in tempdat.keys():
-                if keys in use:
-                    threading.Thread(target=use[keys],args=[c,addr,tempdat[keys]]).start()
-                    #print(userevents)
-def server(host,port,**kwargs):
-    s = socket.socket()
-    s.bind((host,port))
-    #Variables for kwargs
+        except Exception as e:
+            if debug:
+                print(f"[suspengine] Framing error: {e}")
+            continue
+
+        for pkt in packets:
+            if not pkt.strip():
+                continue
+            try:
+                tempdat = json.loads(pkt)
+            except Exception as e:
+                if debug:
+                    print(f"[suspengine] JSON parse error: {e} in '{pkt}'")
+                continue
+
+            for key, val in tempdat.items():
+                if key == 'identify':
+                    continue
+                func = None
+                with lock:
+                    if key in use:
+                        func = use[key]
+                if func:
+                    threading.Thread(target=func, args=[c, addr, val], daemon=True).start()
+
+
+def server(host, port, **kwargs):
+    global limit, debug, defaultlimit, clientlist, use, userdata, prev
     slots = 20
-    global limit
-    global debug
-    global defaultlimit
-    #
-    for stuff in kwargs.items():
-        if stuff[0] == 'debug':
-            debug = stuff[1]
+
+    for k, v in kwargs.items():
+        if k == 'debug':
+            debug = v
             if debug:
                 print('Debug Enabled')
-        if stuff[0] == 'slots':
-            slots = stuff[1]
+        elif k == 'slots':
+            slots = v
             if debug:
-                print('Your server can take ' + str(stuff[1]) + " connections.")
-        if stuff[0] == 'limit':
-            limit = stuff[1]
-            if debug and limit == False:
+                print(f'Your server can take {slots} connections.')
+        elif k == 'limit':
+            limit = v
+            if debug and not limit:
                 print('You have removed the limit on how big your packets can be')
-        if stuff[0] == 'defaultlimit':
-            defaultlimit = stuff[1]
+        elif k == 'defaultlimit':
+            defaultlimit = v
             if debug:
-                print('Your limit to how big a packet can be is ' + str(stuff[1]) + " bytes.")
+                print(f'Your limit to how big a packet can be is {defaultlimit} bytes.')
 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((host, port))
     s.listen(slots)
-    global clientlist
-    global use
-    global userdata
-    global prev
+
+    print(f"[suspengine] Server listening on {host}:{port}...")
+
     while True:
-        c, addr = s.accept()
-        clientlist.append(c)
-        threading.Thread(target=handleclient,args=[c,addr]).start()
-        userdata[str(c)] = {}
-        prev[str(c)] = ""
-        print(str(addr[0]) + " Connected To The Server From Port " + str(addr[1]))
-        if 'connect' in use:
-            use['connect'](c,addr)
-
-
-#server("127.0.0.1",5001)
+        try:
+            c, addr = s.accept()
+            with lock:
+                clientlist.append(c)
+                userdata[str(c)] = {}
+                prev[str(c)] = ""
+            print(f"[suspengine] {addr[0]} connected from port {addr[1]}")
+            threading.Thread(target=handleclient, args=[c, addr], daemon=True).start()
+            if 'connect' in use:
+                threading.Thread(target=use['connect'], args=[c, addr], daemon=True).start()
+        except Exception as e:
+            if debug:
+                print(f"[suspengine] accept loop error: {e}")

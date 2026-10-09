@@ -1,6 +1,6 @@
 {
   "$GMExtension":"",
-  "%Name":"Extension1",
+  "%Name":"ext_suspendee",
   "androidactivityinject":null,
   "androidclassname":"",
   "androidcodeinjection":"",
@@ -17,26 +17,26 @@
   "extensionVersion":"0.0.1",
   "files":[
     {"$GMExtensionFile":"v1","%Name":"","constants":[],"copyToTargets":-1,"filename":"network_disconnect.gml","final":"","functions":[
-        {"$GMExtensionFunction":"","%Name":"network_disconnect_1","argCount":0,"args":[],"documentation":"","externalName":"network_disconnect","help":"","hidden":false,"kind":2,"name":"network_disconnect_1","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
+        {"$GMExtensionFunction":"","%Name":"network_disconnect","argCount":0,"args":[],"documentation":"","externalName":"network_disconnect","help":"","hidden":false,"kind":2,"name":"network_disconnect","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
       ],"init":"","kind":2,"name":"","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
     {"$GMExtensionFile":"v1","%Name":"","constants":[],"copyToTargets":-1,"filename":"network_emit.gml","final":"","functions":[
-        {"$GMExtensionFunction":"","%Name":"network_emit_1","argCount":0,"args":[],"documentation":"","externalName":"network_emit","help":"","hidden":false,"kind":2,"name":"network_emit_1","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
+        {"$GMExtensionFunction":"","%Name":"network_emit","argCount":0,"args":[],"documentation":"","externalName":"network_emit","help":"","hidden":false,"kind":2,"name":"network_emit","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
       ],"init":"","kind":2,"name":"","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
     {"$GMExtensionFile":"v1","%Name":"","constants":[],"copyToTargets":-1,"filename":"network_handle.gml","final":"","functions":[
-        {"$GMExtensionFunction":"","%Name":"network_handle_1","argCount":0,"args":[],"documentation":"","externalName":"network_handle","help":"","hidden":false,"kind":2,"name":"network_handle_1","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
+        {"$GMExtensionFunction":"","%Name":"network_handle","argCount":0,"args":[],"documentation":"","externalName":"network_handle","help":"","hidden":false,"kind":2,"name":"network_handle","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
       ],"init":"","kind":2,"name":"","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
     {"$GMExtensionFile":"v1","%Name":"","constants":[],"copyToTargets":-1,"filename":"network_init.gml","final":"","functions":[
-        {"$GMExtensionFunction":"","%Name":"network_init_1","argCount":0,"args":[],"documentation":"","externalName":"network_init","help":"","hidden":false,"kind":2,"name":"network_init_1","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
+        {"$GMExtensionFunction":"","%Name":"network_init","argCount":0,"args":[],"documentation":"","externalName":"network_init","help":"","hidden":false,"kind":2,"name":"network_init","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
       ],"init":"","kind":2,"name":"","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
     {"$GMExtensionFile":"v1","%Name":"","constants":[],"copyToTargets":-1,"filename":"network_listen.gml","final":"","functions":[
-        {"$GMExtensionFunction":"","%Name":"network_listen_1","argCount":0,"args":[],"documentation":"","externalName":"network_listen","help":"","hidden":false,"kind":2,"name":"network_listen_1","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
+        {"$GMExtensionFunction":"","%Name":"network_listen","argCount":0,"args":[],"documentation":"","externalName":"network_listen","help":"","hidden":false,"kind":2,"name":"network_listen","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
       ],"init":"","kind":2,"name":"","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
     {"$GMExtensionFile":"v1","%Name":"","constants":[],"copyToTargets":-1,"filename":"network_server.gml","final":"","functions":[
-        {"$GMExtensionFunction":"","%Name":"network_server_1","argCount":0,"args":[],"documentation":"","externalName":"network_server","help":"","hidden":false,"kind":2,"name":"network_server_1","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
+        {"$GMExtensionFunction":"","%Name":"network_server","argCount":0,"args":[],"documentation":"","externalName":"network_server","help":"","hidden":false,"kind":2,"name":"network_server","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":1,},
       ],"init":"","kind":2,"name":"","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
   ],
   "gradleinject":null,
-  "hasConvertedCodeInjection":false,
+  "hasConvertedCodeInjection":true,
   "helpfile":"",
   "HTML5CodeInjection":"",
   "html5Props":false,
@@ -54,7 +54,7 @@
   "maccompilerflags":"",
   "maclinkerflags":"",
   "macsourcedir":"",
-  "name":"Extension1",
+  "name":"ext_suspendee",
   "options":[],
   "optionsFile":"options.json",
   "packageId":"",

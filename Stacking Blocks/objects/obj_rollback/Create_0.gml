@@ -1,0 +1,1 @@
+var joined = rollback_join_game()

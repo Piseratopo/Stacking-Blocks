@@ -40,6 +40,14 @@ lock_shape = function() {
 	var _lock_spr = lock_spr;
 	var _half = CELL_SIZE / 2;
 	
+	// ── Immobile spin check ───────────────────────────────────────────────────
+	// A spin is recognised if a tetromino locks in a position where it cannot move left, right, or up.
+	// Checked before creating locked blocks to avoid colliding with self.
+	var _can_move_left  = is_touching_left();
+	var _can_move_right = is_touching_right();
+	var _can_move_up    = is_touching_up();
+	var _is_spin        = (!_can_move_left && !_can_move_right && !_can_move_up);
+	
 	var _rows = (bbox_bottom - bbox_top) div CELL_SIZE;
 	var _cols = (bbox_right  - bbox_left) div CELL_SIZE;
 	
@@ -70,7 +78,10 @@ lock_shape = function() {
 		}
 	}
 	
-	board_owner.clear_lines();
+	// ── Clear lines and generate attack ──────────────────────────────────────
+	var _lines_cleared = board_owner.clear_lines();
+	board_owner.calculate_and_send_attack(_lines_cleared, _is_spin);
+	
 	board_owner.finished_locking_shape = true;
 	board_owner.current_shape = noone;
 	instance_destroy();

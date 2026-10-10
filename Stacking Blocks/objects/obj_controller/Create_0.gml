@@ -20,6 +20,14 @@ for (var _r = 0; _r < grid_height; _r++) {
 
 total_lines_cleared = 0;
 
+// Versus state
+combo_count          = -1;  // -1 so first clear gives combo_count = 0 (no bonus yet)
+b2b_count            = 0;   // Consecutive difficult-clear chain length (0 = no active B2B)
+pending_garbage      = 0;   // Incoming lines queued for next piece-lock (cancellable)
+_last_garbage_hole   = -1;  // Server-supplied hole column; -1 means use random
+past_sixths          = 0;   // Leftover sixth-counters carried into the next attack
+
+
 depth = -100;
 
 get_spawn_y = function() {
@@ -114,6 +122,8 @@ is_row_full = function(_row) {
 	return true;
 };
 
+// ─── Line-clear core ──────────────────────────────────────────────────────────
+// Clears full rows and returns the count. Pure grid/visual logic — no attack math.
 clear_lines = function() {
 	var _lines_cleared = 0;
 	var _r = 0;
@@ -152,45 +162,151 @@ clear_lines = function() {
 
 grid_clear_lines = clear_lines;
 
-// Garbage lines mechanism for multiplayer
-receive_garbage = function(_lines, _hole_col = -1) {
-	incoming_garbage += _lines;
+// ─── Attack generator ─────────────────────────────────────────────────────────
+// Called by lock_shape() with the line count and spin flag.
+// Uses sixth-counters so fractional attacks carry across locks.
+//
+// Attack formula:
+//   Slc  = 2 * N * (N-1)          Simultaneous line clear bonus
+//   Cb   = C                      Combo (current combo count, 0 on first clear)
+//   Sp   = 6 * N  (if spin)       Spin bonus (immobile check, all pieces)
+//   B    = 6 * b2b_count          B2B-burst on a normal clear that breaks the chain
+//   Past = past_sixths            Carry-over from previous attack
+//   Tot  = (Slc + Cb + Sp + B + Special + Past) * Multiplier
+//   Lines sent = Tot div 6;  past_sixths = Tot mod 6
+//
+// Difficult clear (4+ lines, or any spin): extend B2B chain, no burst.
+// Normal clear (1-3 lines, no spin): reset chain and fire B burst.
+calculate_and_send_attack = function(_lines_cleared, _is_spin) {
+	// ── Combo ────────────────────────────────────────────────────────────────
+	if (_lines_cleared > 0) {
+		combo_count++;
+	} else {
+		combo_count = -1;
+	}
+	var _cb = max(0, combo_count);
+
+	// ── Determine if this is a difficult clear ───────────────────────────────
+	var _is_difficult = (_is_spin || _lines_cleared >= 4);
+
+	// ── Sixth-counter components ─────────────────────────────────────────────
+	var _N    = _lines_cleared;
+	var _slc  = 2 * _N * (_N - 1);           // 0, 0, 4, 12, 24 … for 0-1-2-3-4 lines
+	var _sp   = _is_spin ? (6 * _N) : 0;     // 6 per line cleared with a spin
+	var _b    = 0;                            // B2B-burst fires only on a chain break
+
+	// ── B2B state machine ────────────────────────────────────────────────────
+	if (_lines_cleared > 0) {
+		if (_is_difficult) {
+			// Extend chain — no burst
+			b2b_count++;
+		} else {
+			// Normal clear breaks the chain — fire burst equal to accumulated chain
+			_b = 6 * b2b_count;
+			b2b_count = 0;
+		}
+	}
+	// (zero-line lock: no change to b2b_count, no burst)
+
+	// ── Total sixths ─────────────────────────────────────────────────────────
+	var _special    = 0;   // Reserved for future skills
+	var _multiplier = 1;   // Reserved for future skills
+	var _tot_sixths = (_slc + _cb + _sp + _b + _special + past_sixths) * _multiplier;
+
+	var _lines_sent = _tot_sixths div 6;
+	past_sixths     = _tot_sixths mod 6;
+
+	// ── Garbage cancellation then send ───────────────────────────────────────
+	if (_lines_sent > 0) {
+		var _cancelled = min(_lines_sent, pending_garbage);
+		pending_garbage -= _cancelled;
+		_lines_sent     -= _cancelled;
+	}
+
+	if (_lines_sent > 0 && is_local && instance_exists(obj_network_manager)) {
+		var _hole = irandom(grid_width - 1);
+		obj_network_manager.send_attack(_lines_sent, _hole);
+	}
+
+	return _lines_sent;
 };
 
+// ─── Garbage reception ───────────────────────────────────────────────────────
+// Called by obj_network_manager when attack_receive arrives.
+// Lines queue into pending_garbage so the player can cancel them before they rise.
+receive_garbage = function(_lines, _hole_col = -1) {
+	if (_lines <= 0) exit;
+	pending_garbage += _lines;
+	// Store the server-supplied hole column (latest value wins for the next apply)
+	if (_hole_col >= 0 && _hole_col < grid_width) {
+		_last_garbage_hole = _hole_col;
+	}
+};
+
+// ─── Garbage application ─────────────────────────────────────────────────────
+// Called after each piece lock (in Step_0). Pushes pending_garbage rows upward.
 apply_garbage = function() {
-	if (incoming_garbage <= 0) return;
-	var _lines_to_push = incoming_garbage;
-	incoming_garbage = 0;
+	if (pending_garbage <= 0) return;
+	var _lines_to_push = pending_garbage;
+	pending_garbage = 0;
 	var _owner = id;
 
-	// Shift locked blocks up
+	// Shift all locked blocks upward
 	with (obj_block) {
 		if (board_owner == _owner && is_locked) {
 			y -= _lines_to_push * CELL_SIZE;
 		}
 	}
 
-	// Insert garbage rows at bottom of grid
+	// Insert garbage rows at the bottom of the grid
 	for (var _g = 0; _g < _lines_to_push; _g++) {
-		var _hole = irandom(grid_width - 1);
+		// Use server hole on first row, random for subsequent rows in the same burst
+		var _hole;
+		if (_last_garbage_hole >= 0) {
+			_hole = _last_garbage_hole;
+			_last_garbage_hole = -1;   // Consume — remaining rows get fresh random holes
+		} else {
+			_hole = irandom(grid_width - 1);
+		}
+
 		var _row = array_create(grid_width, "I");
 		_row[_hole] = GRID_EMPTY;
 		array_insert(play_grid, 0, _row);
 
-		var _row_y = grid_row_to_y(0, grid_bottom_y) - _g * CELL_SIZE;
+		var _row_y = grid_row_to_y(0, grid_bottom_y);
 		for (var _c = 0; _c < grid_width; _c++) {
 			if (_c != _hole) {
-				var _bx = grid_col_to_x(_c, grid_start_x);
-				instance_create_layer(_bx, _row_y, "Blocks", obj_block, {
-					board_owner:  _owner,
-					is_locked:    true,
-					sprite_index: spr_lock_I,
-					image_index:  0,
-					image_speed:  0,
-					image_blend:  c_dkgray,
-					block_name:   "I"
-				});
+				instance_create_layer(
+					grid_col_to_x(_c, grid_start_x),
+					_row_y,
+					"Blocks", obj_block,
+					{
+						board_owner:  _owner,
+						is_locked:    true,
+						sprite_index: spr_lock_I,
+						image_index:  0,
+						image_speed:  0,
+						image_blend:  c_dkgray,
+						block_name:   "I"
+					}
+				);
 			}
+		}
+	}
+
+	// ── Top-out detection ────────────────────────────────────────────────────
+	var _top_limit_y = grid_bottom_y - grid_height * CELL_SIZE;
+	var _topped_out  = false;
+	with (obj_block) {
+		if (board_owner == _owner && is_locked && y < _top_limit_y) {
+			_topped_out = true;
+			break;
+		}
+	}
+	if (_topped_out && is_local) {
+		// Notify network manager; UI/visual handling deferred to Step 6
+		if (instance_exists(obj_network_manager)) {
+			obj_network_manager.send_ko();
 		}
 	}
 };

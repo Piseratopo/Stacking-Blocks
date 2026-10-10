@@ -9,9 +9,8 @@ alarm[0] = fall_delay;
 
 // Horizontal movements
 
-move_DAS = 10;
+move_DAS = 12;
 move_ARR = 1;
-move_arr = move_ARR;
 move_dir = 0;
 
 is_touching_left = function() {
@@ -20,6 +19,10 @@ is_touching_left = function() {
 
 is_touching_right = function() {
 	return !place_meeting(x + CELL_SIZE, y, obj_border) && bbox_right <= board_owner.grid_start_x + (board_owner.grid_width - 1) * CELL_SIZE;
+}
+
+is_touching_up = function() {
+	return !place_meeting(x, y - CELL_SIZE, obj_border);
 }
 
 // Lock settings

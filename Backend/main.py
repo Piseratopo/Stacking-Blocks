@@ -11,10 +11,11 @@ room_lock = threading.RLock()
 
 
 def generate_room_code():
+    """Return a unique 4-uppercase-character room code, excluding I and O."""
     chars = "ABCDEFGHJKLMNPQRSTUVWXYZ"  # Omitting 'I' and 'O' to avoid visual confusion
-    code = "ABCDEFG"
-    while code in rooms_by_code:
-        code = "".join(random.choices(chars, k=7))
+    code = None
+    while code is None or code in rooms_by_code:
+        code = "".join(random.choices(chars, k=4))
     return code
 
 
@@ -82,9 +83,14 @@ class Room:
         return all(p["ready"] for p in self.players.values())
 
     def broadcast(self, event, data, exclude=None):
-        for client in list(self.players.keys()):
-            if exclude is not None and client == exclude:
-                continue
+        """Snapshot the player list first, then emit outside any held lock.
+
+        room_lock is an RLock so re-entrant calls within the same thread are
+        safe, but holding the lock across multiple sendall() calls blocks every
+        other thread trying to acquire room_lock for the full network I/O time.
+        """
+        targets = [c for c in list(self.players.keys()) if c != exclude]
+        for client in targets:
             suspengine.emit(event, data, client)
 
     def cancel_countdown(self):

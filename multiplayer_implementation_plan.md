@@ -107,15 +107,7 @@ Convert static macros into instance variables on `obj_player_board`:
 
 ## 3. Phase 2: Versus Mechanics & Garbage System
 
-### 3.1 Line Clear Attack Table
-When `clear_lines()` completes in `obj_player_board`:
-| Cleared Lines | Base Garbage | Combo Bonus | Back-to-Back Bonus |
-|---|---|---|---|
-| 1 Line (Single) | 0 | +combo_count | 0 |
-| 2 Lines (Double) | 1 | +combo_count | 0 |
-| 3 Lines (Triple) | 2 | +combo_count | 0 |
-| 4 Lines (Tetris) | 4 | +combo_count | +1 |
-| All Clear (Empty Board) | 10 | Instant burst | 0 |
+### 3.1 Line Clear Attack
 
 ### 3.2 Incoming Garbage Meter & Cancellation
 1. **Garbage Countering**: Incoming garbage enters `pending_garbage = []`. If the player clears lines before the garbage rises, their attack cancels out incoming garbage first (`pending_lines -= attack_lines`).

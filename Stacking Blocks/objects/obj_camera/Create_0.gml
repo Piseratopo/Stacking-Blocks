@@ -17,16 +17,33 @@ view_hport[0] = viewport_height;
 camera_width = viewport_width;
 camera_height = viewport_height;
 
-if (instance_number(obj_controller) > 1) {
-	var _min_x = 999999;
-	var _max_x = -999999;
-	with (obj_controller) {
-		_min_x = min(_min_x, grid_start_x);
-		_max_x = max(_max_x, grid_start_x + grid_width * CELL_SIZE);
+if (instance_exists(obj_player_board)) {
+	if (instance_number(obj_player_board) > 1) {
+		var _min_x = 999999;
+		var _max_x = -999999;
+		with (obj_player_board) {
+			_min_x = min(_min_x, grid_start_x);
+			_max_x = max(_max_x, grid_start_x + grid_width * CELL_SIZE);
+		}
+		board_center_x = (_min_x + _max_x) / 2;
+	} else {
+		var _board = instance_find(obj_player_board, 0);
+		board_center_x = _board.grid_start_x + (_board.grid_width * CELL_SIZE) / 2;
 	}
-	board_center_x = (_min_x + _max_x) / 2;
+} else if (instance_exists(obj_controller)) {
+	if (instance_number(obj_controller) > 1) {
+		var _min_x = 999999;
+		var _max_x = -999999;
+		with (obj_controller) {
+			_min_x = min(_min_x, grid_start_x);
+			_max_x = max(_max_x, grid_start_x + grid_width * CELL_SIZE);
+		}
+		board_center_x = (_min_x + _max_x) / 2;
+	} else {
+		board_center_x = obj_controller.grid_start_x + (obj_controller.grid_width * CELL_SIZE) / 2;
+	}
 } else {
-	board_center_x = obj_controller.grid_start_x + (obj_controller.grid_width * CELL_SIZE) / 2;
+	board_center_x = GRID_START_X + (GRID_WIDTH * CELL_SIZE) / 2;
 }
 board_center_y = GRID_BOTTOM_Y - (GRID_HEIGHT * CELL_SIZE) / 2;
 

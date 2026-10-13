@@ -27,6 +27,9 @@ This document details the complete technical roadmap for implementing online mul
 |                               |                   |                               |
 | [obj_network_manager]         |                   | [obj_network_manager]         |
 |                               |                   |                               |
+| [obj_controller (Match Mgr)]  |                   | [obj_controller (Match Mgr)]  |
+|   - Spawns local & remotes    |                   |   - Spawns local & remotes    |
+|                               |                   |                               |
 | [obj_player_board (Local)]    |                   | [obj_player_board (Local)]    |
 |   - Zero latency local input  |                   |   - Zero latency local input  |
 |                               |                   |                               |
@@ -38,7 +41,7 @@ This document details the complete technical roadmap for implementing online mul
 
 ### Core Architecture Highlights
 1. **Extensible Board System**:
-   - The client manages a single **Local Board** (`obj_player_board` with `is_local = true`) and a dynamic array of **Remote Boards** (`remote_boards = []`).
+   - The client [`obj_controller`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_controller/Create_0.gml) orchestrates a single **Local Board** ([`obj_player_board`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_player_board/Create_0.gml) with `is_local = true`) and a dynamic array of **Remote Boards** (`remote_boards = []`).
    - In 1v1 mode, `remote_boards` contains 1 full-sized opponent board.
    - In 1 vs Many mode, `remote_boards` can hold up to $N$ scaled/miniaturized boards arranged in a grid or along the periphery, requiring zero changes to the underlying simulation logic.
 2. **Room Code System**:
@@ -51,80 +54,100 @@ This document details the complete technical roadmap for implementing online mul
 
 ---
 
-## 2. Phase 1: Decoupling GameMaker Logic (Single-Board -> Multi-Board)
+## 2. Phase 1: Decoupling GameMaker Logic (Single-Board -> Multi-Board) - [COMPLETED]
 
-Currently, [obj_controller](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_controller/Create_0.gml) and [scr_macro.gml](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/scripts/scr_macro/scr_macro.gml) hardcode single-board coordinates and global references.
+Previously, `obj_controller` and macros hardcoded single-board coordinates and global references. The architecture has now been cleanly refactored:
 
-### 2.1 Parameterize Board Coordinates & Instances
-Convert static macros into instance variables on `obj_player_board`:
-- **Board Coordinates**:
+### 2.1 Parameterized Board Component (`obj_player_board`)
+All board-specific logic lives in [`obj_player_board`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_player_board/Create_0.gml):
+- **Board Coordinates & Identity**:
   ```gml
-  // In obj_player_board Create event
-  is_local = true;
-  player_id = "";             // Assigned by server (e.g. client socket ID)
-  slot_index = 0;            // 0 = primary/left, 1..N = remote opponents
-  
-  // Board positioning
-  grid_start_x = 280;
-  grid_bottom_y = 1900;
-  grid_width = 10;
-  grid_height = 20;
-  cell_size = CELL_SIZE;
+  is_local      = true;
+  slot_index    = 0;
+  player_id     = "local";
+  player_name   = "Player 1";
+  is_alive      = true;
+
+  grid_start_x  = GRID_START_X;
+  grid_bottom_y = GRID_BOTTOM_Y;
+  grid_width    = GRID_WIDTH;
+  grid_height   = GRID_HEIGHT;
+  cell_size     = CELL_SIZE;
   ```
-- **Coordinate Conversion Functions**: Convert `grid_x_to_col`, `grid_y_to_row`, etc., into methods bound to `obj_player_board`:
-  ```gml
-  board_x_to_col = function(_x) { return round((_x - grid_start_x) / cell_size); };
-  board_y_to_row = function(_y) { return round((grid_bottom_y - _y) / cell_size); };
-  board_col_to_x = function(_c) { return grid_start_x + _c * cell_size; };
-  board_row_to_y = function(_r) { return grid_bottom_y - _r * cell_size; };
-  ```
+- **Self-Contained Methods**: `grid_set`, `grid_get`, `is_row_full`, `clear_lines`, `spawn_shape`, and `get_spawn_y` bound directly to the board instance.
+- **Dynamic Border Spawner**: `spawn_borders()` automatically builds walls and floor relative to `grid_start_x` and `grid_bottom_y` (or tags room-placed borders), tagged with `board_owner = id`.
 
 ### 2.2 Board Ownership for Shapes and Blocks
-- When spawning a piece in `spawn_shape()`, assign `board_owner = self`:
+- When spawning a piece in `spawn_shape()`, assign `board_owner = id`:
   ```gml
   var _inst = instance_create_layer(_spawn_x, _spawn_y, "Blocks", obj_shape, {
-      board_owner: self,
-      shape_name: _shape_name,
-      shape_data: _shape_props[$ _shape_name],
+      board_owner:  id,
+      shape_name:   _shape_name,
+      shape_data:   _shape_props[$ _shape_name],
       sprite_index: _shape_props[$ _shape_name].display_spr,
-      lock_spr: _shape_props[$ _shape_name].lock_spr,
-      orientation: 0
+      lock_spr:     _shape_props[$ _shape_name].lock_spr,
+      orientation:  0
   });
   ```
-- In [obj_shape](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_shape/Create_0.gml) and [obj_block](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_block/Create_0.gml):
-  - Replace `obj_controller.grid_set()` -> `board_owner.grid_set()`.
-  - Replace `obj_controller.clear_lines()` -> `board_owner.clear_lines()`.
-  - Replace global border collision with board-scoped boundary checks:
+- In [`obj_shape`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_shape/Create_0.gml) and [`obj_block`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_block/Create_0.gml):
+  - Uses `board_owner.grid_set()`, `board_owner.clear_lines()`, and `board_owner.calculate_and_send_attack()`.
+  - Boundary and collision checks use `board_owner.grid_start_x`, `board_owner.grid_width`, and `board_owner.is_local`.
+  - Directional collision methods: `is_touching_left()`, `is_touching_right()`, and `is_touching_up()`.
+
+### 2.3 Refactored Match Orchestrator (`obj_controller`)
+- [`obj_controller`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_controller/Create_0.gml) serves purely as Match / System Orchestrator.
+- Spawns the local board:
+  ```gml
+  local_board = instance_create_layer(0, 0, "Controllers", obj_player_board, {
+      is_local:      true,
+      slot_index:    0,
+      grid_start_x:  GRID_START_X,
+      grid_bottom_y: GRID_BOTTOM_Y
+  });
+  ```
+- Maintains `remote_boards = []` and `spawn_remote_board()` helper to dynamically instantiate opponent boards in Step 4+.
+
+---
+
+## 3. Phase 2: Versus Mechanics & Garbage System - [COMPLETED]
+
+### 3.1 Sixth-Counter Attack System & Spin Bonus
+Implemented in [`obj_player_board/Create_0.gml`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_player_board/Create_0.gml) via `calculate_and_send_attack(_lines_cleared, _is_spin)`:
+- **Sixth-Counters**: Attacks are tracked in 1/6th line units so fractional bonuses accumulate across locks:
+  - **Simultaneous Line Clear (Slc)**: $Slc = 2 \times N \times (N - 1)$ sixth-counters ($N =$ lines cleared; yields 0, 0, 4, 12, 24 sixths for 0, 1, 2, 3, 4 lines).
+  - **Combo (Cb)**: $Cb = \max(0, \text{combo\_count})$ sixth-counters. Combo starts at 0 on first clear and increments per consecutive clear; resets to -1 on 0-line lock.
+  - **Spin Bonus (Sp)**: $Sp = 6 \times N$ sixth-counters if the clear is a spin.
+- **Immobile Spin Check**:
+  - A spin is recognized when a tetromino locks in a position where it cannot move left, right, or up:
     ```gml
-    kick_in_bounds = function(_kx, _ky = 0) {
-        return (bbox_left + _kx >= board_owner.grid_start_x) &&
-               (bbox_right + _kx <= board_owner.grid_start_x + board_owner.grid_width * CELL_SIZE) &&
-               (bbox_bottom + _ky <= board_owner.grid_bottom_y);
-    };
+    var _is_spin = (!is_touching_left() && !is_touching_right() && !is_touching_up());
     ```
+  - Evaluated in `obj_shape.lock_shape()` before creating locked blocks to avoid colliding with self. All pieces can spin.
+- **Back-to-Back (B2B-burst)**:
+  - **Difficult clear** ($N \ge 4$ or any spin): increments `b2b_count` chain by 1; no burst sent this turn.
+  - **Normal clear** ($1 \le N \le 3$, no spin): breaks chain, sets `b2b_count = 0`, and fires a burst of $B = 6 \times \text{b2b\_count}$ sixth-counters.
+  - **Zero-line lock**: preserves `b2b_count` chain.
+- **Total & Remainder Carry**:
+  $$\text{Tot} = (\text{Slc} + \text{Cb} + \text{Sp} + B + \text{Special} + \text{Past}) \times \text{Multiplier}$$
+  $$\text{Lines Sent} = \lfloor \text{Tot} / 6 \rfloor, \quad \text{past\_sixths} = \text{Tot} \pmod 6$$
+
+### 3.2 Incoming Garbage Meter, Cancellation & Rising Rows
+1. **Garbage Queueing (`receive_garbage(_lines, _hole_col)`)**: Incoming attacks queue into `pending_garbage`, storing the server-provided `_last_garbage_hole`.
+2. **Garbage Countering / Cancellation**: Outgoing `_lines_sent` cancel `pending_garbage` before sending remainder to network.
+3. **Rising from the Bottom (`apply_garbage()`)**: In `Step_0.gml` after piece lock, remaining `pending_garbage` rows push existing locked blocks upward. New gray garbage rows insert at bottom of `play_grid`, using the server-supplied hole column for the first row and random holes for subsequent rows.
+4. **Knockout / Top-Out Detection**: During `apply_garbage()`, if any locked block exceeds the ceiling (`y < grid_bottom_y - grid_height * CELL_SIZE`), sets `is_alive = false` and triggers `obj_network_manager.send_ko()`.
 
 ---
 
-## 3. Phase 2: Versus Mechanics & Garbage System
+## 4. Phase 3: Python Backend Architecture (`Backend/`) - [COMPLETED]
 
-### 3.1 Line Clear Attack
+### 4.1 Server Hardening ([`Backend/suspengine.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/suspengine.py))
+- **Thread Safety**: Added `threading.Lock()` guarding `clientlist`, `userdata`, and room mappings.
+- **Packet Delimiter Splitting**: Buffer parsing in `handleclient` splits on `[{//V//}]` to prevent fragmented JSON issues.
+- **Clean Disconnects**: Emits room teardown/opponent notification if a socket disconnects abruptly.
 
-### 3.2 Incoming Garbage Meter & Cancellation
-1. **Garbage Countering**: Incoming garbage enters `pending_garbage = []`. If the player clears lines before the garbage rises, their attack cancels out incoming garbage first (`pending_lines -= attack_lines`).
-2. **Rising from the Bottom**: Remaining incoming lines push existing locked blocks upward. A random empty column (hole) is chosen per attack to create counter-play opportunities.
-3. **Knockout / Top-Out**: If a block locks above row 20 or an incoming piece cannot spawn, trigger `on_player_ko()`.
-
----
-
-## 4. Phase 3: Python Backend Architecture (`Backend/`)
-
-### 4.1 Server Hardening ([suspengine.py](file:///d:/Projektoj/Stacking-Blocks/Backend/suspengine.py))
-- **Thread Safety**: Add `threading.Lock()` to guard `clientlist`, `userdata`, and room mappings.
-- **Packet Delimiter Splitting**: Refactor buffer parsing in `handleclient` to prevent fragmented JSON issues.
-- **Clean Disconnects**: Emit room teardown/opponent notification if a socket disconnects abruptly.
-
-### 4.2 Room System & State Machine ([main.py](file:///d:/Projektoj/Stacking-Blocks/Backend/main.py))
-Implement a scalable room management architecture:
+### 4.2 Room System & State Machine ([`Backend/main.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/main.py))
+Implemented scalable room management architecture:
 
 ```python
 class Room:
@@ -136,12 +159,12 @@ class Room:
         self.match_seed = 0
 ```
 
-- **Room Code Generator**: Random 4 uppercase characters (e.g., `random.choices(string.ascii_uppercase, k=4)`), ensuring uniqueness.
+- **Room Code Generator**: Random 4 uppercase characters (`random.choices(string.ascii_uppercase, k=4)`), ensuring uniqueness.
 - **Match Lifecycle**:
   - `room_create`: Host creates room, receives 4-letter code.
   - `room_join`: Second player (and future players) enter code.
-  - `room_ready`: When all players toggle ready, trigger 3-second countdown.
-  - `match_start`: Distribute synchronized `match_seed` so all clients generate the exact same piece sequence.
+  - `room_ready`: When all players toggle ready, triggers 3-second countdown.
+  - `match_start`: Distributes synchronized `match_seed` so all clients generate the exact same piece sequence.
   - `garbage_relay`: Receives attack from player, routes to opponent (or target in 1 vs many).
   - `player_topout`: Tracks surviving players until 1 remains; announces winner.
 
@@ -170,7 +193,7 @@ Packets conform to the existing `ext_suspendee` structure:
 
 ---
 
-## 6. Phase 5: Client-Side Implementation in GameMaker
+## 6. Phase 5: Client-Side Implementation in GameMaker (Upcoming)
 
 ### 6.1 `obj_network_manager`
 - Persistent object initialized in the title room.
@@ -178,11 +201,11 @@ Packets conform to the existing `ext_suspendee` structure:
 - Binds event callbacks via `network_listen()`.
 - Dispatches state updates to local and remote board objects.
 
-### 6.2 Remote Board Representation (`obj_remote_board`)
-- Renders at `x = 920` (right side of viewport).
+### 6.2 Remote Board Representation (`obj_player_board` with `is_local = false`)
+- Spawned dynamically via `obj_controller.spawn_remote_board(...)` at `x = 920` (or grid layout for 1 vs many).
 - Holds an independent `play_grid` and renders locked blocks with autotiled sprites.
 - Listens to `piece_sync` to render the opponent's active falling piece with smooth interpolation.
-- Extensible: multiple `obj_remote_board` instances can be instantiated and arranged dynamically for 1 vs many.
+- Extensible: multiple remote boards can be instantiated and arranged dynamically for 1 vs many.
 
 ### 6.3 Lobby UI & Room Code Screens
 1. **Multiplayer Menu**:
@@ -197,9 +220,9 @@ Packets conform to the existing `ext_suspendee` structure:
 
 ## 7. Step-by-Step Implementation Checklist
 
-- [ ] **Step 1: Board Refactoring**: Decouple [obj_controller](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_controller/Create_0.gml) and [scr_macro.gml](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/scripts/scr_macro/scr_macro.gml) into self-contained board instances with parameterized coordinates.
-- [ ] **Step 2: Ownership & Garbage Engine**: Link [obj_shape](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_shape/Create_0.gml) and [obj_block](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/objects/obj_block/Create_0.gml) to `board_owner`; build the garbage generation and line push mechanism.
-- [ ] **Step 3: Backend Room System**: Harden [Backend/suspengine.py](file:///d:/Projektoj/Stacking-Blocks/Backend/suspengine.py) (threading locks) and implement the Room Code lobby and matchmaking state machine in [Backend/main.py](file:///d:/Projektoj/Stacking-Blocks/Backend/main.py).
-- [ ] **Step 4: Client Network Manager & Protocol Handlers**: Implement `obj_network_manager` using [ext_suspendee](file:///d:/Projektoj/Stacking-Blocks/Stacking%20Blocks/extensions/ext_suspendee) to handle room creation, joining, piece sync, and attack routing.
-- [ ] **Step 5: Opponent Board & Rendering**: Build `obj_remote_board` to mirror opponent grid and falling piece.
-- [ ] **Step 6: UI & Polishing**: Build the Room Code entry/display UI, countdown overlay, match-over victory popup, and rematch flow.
+- [x] **Step 1: Board Refactoring**: Decouple `obj_controller` into Match Orchestrator and `obj_player_board` self-contained board instances with parameterized coordinates.
+- [x] **Step 2: Ownership & Garbage Engine**: Link `obj_shape` and `obj_block` to `board_owner`; sixth-counter attack system, immobile spin check, garbage cancellation queue, and line push mechanism.
+- [x] **Step 3: Backend Room System**: Harden [`Backend/suspengine.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/suspengine.py) (threading locks, packet delimiter framing) and implement Room Code lobby and matchmaking in [`Backend/main.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/main.py).
+- [ ] **Step 4: Client Network Manager & Protocol Handlers**: Implement `obj_network_manager` using `ext_suspendee` to handle room creation, joining, piece sync, and attack routing.
+- [ ] **Step 5: Opponent Board & Rendering**: Wire remote board mirroring via `obj_player_board` (`is_local = false`) to display opponent grid, ghost falling piece, and danger gauge.
+- [ ] **Step 6: UI & Polishing**: Build Room Code entry/display UI, countdown overlay, match-over victory popup, and rematch flow.

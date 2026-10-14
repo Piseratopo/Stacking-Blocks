@@ -71,4 +71,4 @@ if (last_error != "") {
 
 // Hotkey instructions
 draw_set_colour(c_ltgray);
-draw_text(_tx, _ty, "[C] Create  [J] Join  [R] Ready  [A] Attack  [L] Leave");
+draw_text(_tx, _ty, "[C] Create  [J] Join  [R] Ready  [L] Leave");

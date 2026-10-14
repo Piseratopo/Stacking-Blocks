@@ -1,17 +1,5 @@
-// ─── Board identity & positioning ──────────────────────────────────────────
-is_local      = true;
-slot_index    = 0;
-player_id     = "";
-player_name   = "Player 1";
-is_alive      = true;
-
-grid_width    = GRID_WIDTH;
-grid_height   = GRID_HEIGHT;
-grid_start_x  = GRID_START_X;
-grid_bottom_y = GRID_BOTTOM_Y;
+// Board state
 cell_size     = CELL_SIZE;
-
-// ─── Board state ─────────────────────────────────────────────────────────────
 current_shape          = noone;
 finished_locking_shape = false;
 incoming_garbage       = 0;
@@ -22,7 +10,7 @@ for (var _r = 0; _r < grid_height; _r++) {
 	play_grid[_r] = array_create(grid_width, GRID_EMPTY);
 }
 
-// ─── Versus state ────────────────────────────────────────────────────────────
+// Versus state 
 combo_count        = -1;   // -1 so first clear gives combo_count = 0 (no bonus yet)
 b2b_count          = 0;    // Consecutive difficult-clear chain length (0 = no active B2B)
 pending_garbage    = 0;    // Incoming lines queued for next piece-lock (cancellable)
@@ -31,7 +19,7 @@ past_sixths        = 0;    // Leftover sixth-counters carried into next attack
 
 depth = -100;
 
-// ─── Next & Hold piece queue ─────────────────────────────────────────────────
+// Next & Hold piece queue 
 next_shape_name = get_random_shape();
 hold_shape_name = "";
 can_hold        = true;
@@ -84,18 +72,8 @@ spawn_borders = function() {
 	array_push(borders, _br);
 };
 
-// Check if static borders already exist at this board's position in rm_play
-var _existing_border = instance_position(grid_start_x - CELL_SIZE, grid_bottom_y, obj_border);
-if (!_existing_border) {
-	spawn_borders();
-} else {
-	var _owner = id;
-	with (obj_border) {
-		if (x >= other.grid_start_x - CELL_SIZE && x <= other.grid_start_x + other.grid_width * CELL_SIZE) {
-			board_owner = _owner;
-		}
-	}
-}
+// Dynamic border spawner
+spawn_borders();
 
 // ─── Spawn Helpers ───────────────────────────────────────────────────────────
 get_spawn_y = function() {
@@ -275,55 +253,47 @@ receive_garbage = function(_lines, _hole_col = -1) {
 };
 
 // ─── Garbage application ─────────────────────────────────────────────────────
+// Shifts existing grid data and locked blocks up, then delegates row-building
+// to scr_garbage functions so garbage blocks behave identically to normal locked blocks.
 apply_garbage = function() {
 	if (pending_garbage <= 0) return;
 	var _lines_to_push = pending_garbage;
 	pending_garbage = 0;
 	var _owner = id;
 
-	// Shift all locked blocks upward
+	// 1. Shift play_grid upward by _lines_to_push rows
+	var _len = array_length(play_grid);
+	while (array_length(play_grid) < _len + _lines_to_push) {
+		array_push(play_grid, array_create(grid_width, GRID_EMPTY));
+	}
+	for (var _r = _len - 1; _r >= 1; _r--) {
+		play_grid[_r + _lines_to_push] = play_grid[_r];
+	}
+	// Clear rows 1.._lines_to_push for incoming garbage
+	for (var _r = 1; _r <= _lines_to_push; _r++) {
+		play_grid[_r] = array_create(grid_width, GRID_EMPTY);
+	}
+
+	// 2. Shift all existing locked blocks upward to make room
 	with (obj_block) {
 		if (board_owner == _owner && is_locked) {
 			y -= _lines_to_push * CELL_SIZE;
 		}
 	}
 
-	// Insert garbage rows at bottom of grid
-	for (var _g = 0; _g < _lines_to_push; _g++) {
-		var _hole;
-		if (_last_garbage_hole >= 0) {
-			_hole = _last_garbage_hole;
-			_last_garbage_hole = -1;
-		} else {
-			_hole = irandom(grid_width - 1);
-		}
-
-		var _row = array_create(grid_width, "I");
-		_row[_hole] = GRID_EMPTY;
-		array_insert(play_grid, 0, _row);
-
-		var _row_y = grid_row_to_y(0, grid_bottom_y);
-		for (var _c = 0; _c < grid_width; _c++) {
-			if (_c != _hole) {
-				instance_create_layer(
-					grid_col_to_x(_c, grid_start_x),
-					_row_y,
-					"Blocks", obj_block,
-					{
-						board_owner:  _owner,
-						is_locked:    true,
-						sprite_index: spr_lock_I,
-						image_index:  0,
-						image_speed:  0,
-						image_blend:  c_dkgray,
-						block_name:   "I"
-					}
-				);
-			}
-		}
+	// 3. Insert garbage rows at rows 1.._lines_to_push
+	var _hole = _last_garbage_hole;
+	_last_garbage_hole = -1;  // consume the server-supplied hole
+	if (_hole < 0 || _hole >= grid_width) {
+		_hole = irandom(grid_width - 1);
 	}
 
-	// ── Top-out detection ────────────────────────────────────────────────────
+	for (var _g = 0; _g < _lines_to_push; _g++) {
+		var _target_row = _g + 1;
+		garbage_push_single_hole(self, _target_row, _hole);
+	}
+
+	// 4. Top-out detection
 	var _top_limit_y = grid_bottom_y - grid_height * CELL_SIZE;
 	var _topped_out  = false;
 	with (obj_block) {
@@ -339,3 +309,63 @@ apply_garbage = function() {
 		}
 	}
 };
+
+// ─── Reset / Clear Board ─────────────────────────────────────────────────────
+clear_board = function() {
+	var _owner = id;
+
+	// 1. Destroy any active falling piece or shape belonging to this board
+	if (instance_exists(current_shape)) {
+		instance_destroy(current_shape);
+	}
+	current_shape = noone;
+
+	with (obj_shape) {
+		if (board_owner == _owner) {
+			instance_destroy();
+		}
+	}
+
+	// 2. Destroy all locked blocks belonging to this board
+	with (obj_block) {
+		if (board_owner == _owner) {
+			instance_destroy();
+		}
+	}
+
+	// 3. Reset play grid array
+	play_grid = array_create(grid_height);
+	for (var _r = 0; _r < grid_height; _r++) {
+		play_grid[_r] = array_create(grid_width, GRID_EMPTY);
+	}
+
+	// 4. Reset versus & game state variables
+	finished_locking_shape = false;
+	incoming_garbage       = 0;
+	pending_garbage        = 0;
+	total_lines_cleared    = 0;
+	combo_count            = -1;
+	b2b_count              = 0;
+	_last_garbage_hole     = -1;
+	past_sixths            = 0;
+	is_alive               = true;
+	hold_shape_name        = "";
+	can_hold               = true;
+
+	if (variable_instance_exists(id, "remote_piece_active")) {
+		remote_piece_active = false;
+	}
+
+	// 5. Generate fresh next piece from active seed
+	next_shape_name = get_random_shape();
+
+	// 6. Reset camera target Y for local player
+	if (is_local) {
+		var _top_y = grid_bottom_y - (grid_height + 1) * CELL_SIZE;
+		with (obj_camera) {
+			target_y = _top_y + 10 * CELL_SIZE - camera_height / 2;
+		}
+	}
+};
+reset_board = clear_board;
+

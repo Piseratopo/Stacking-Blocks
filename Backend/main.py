@@ -116,6 +116,9 @@ class Room:
                     for p in self.players.values():
                         p["alive"] = True
                     on_start_cb(self)
+                elif self.state == "COUNTDOWN":
+                    self.cancel_countdown()
+                    self.broadcast("room_update", self.to_dict())
 
         self.countdown_timer = threading.Timer(3.0, _finish)
         self.countdown_timer.daemon = True
@@ -284,6 +287,10 @@ def on_player_ready(client, addr, data):
         if not p_info["ready"] and room.state == "COUNTDOWN":
             room.cancel_countdown()
 
+        ready_count = sum(1 for p in room.players.values() if p["ready"])
+        total_players = len(room.players)
+        print(f"[Room] {p_info['name']} in {room.code} set READY={p_info['ready']} ({ready_count}/{total_players} ready, {total_players}/{room.max_players} connected)")
+
         room.broadcast("room_update", {
             "code": room.code,
             "players": room.get_player_list(),
@@ -291,6 +298,7 @@ def on_player_ready(client, addr, data):
         })
 
         if room.all_ready() and room.state == "LOBBY":
+            print(f"[Room] All {total_players} players ready! Starting countdown for {room.code}...")
             def _on_match_start(r):
                 print(f"[Room] Match starting in {r.code} with seed {r.match_seed}")
                 r.broadcast("match_start", {
@@ -299,6 +307,8 @@ def on_player_ready(client, addr, data):
                 })
 
             room.start_countdown(_on_match_start)
+        elif total_players < room.max_players:
+            print(f"[Room] Waiting for Player 2 to join {room.code} before starting match.")
 
 
 @suspengine.channel("piece_sync")

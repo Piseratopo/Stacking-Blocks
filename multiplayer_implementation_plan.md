@@ -223,6 +223,6 @@ Packets conform to the existing `ext_suspendee` structure:
 - [x] **Step 1: Board Refactoring**: Decouple `obj_controller` into Match Orchestrator and `obj_player_board` self-contained board instances with parameterized coordinates.
 - [x] **Step 2: Ownership & Garbage Engine**: Link `obj_shape` and `obj_block` to `board_owner`; sixth-counter attack system, immobile spin check, garbage cancellation queue, and line push mechanism.
 - [x] **Step 3: Backend Room System**: Harden [`Backend/suspengine.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/suspengine.py) (threading locks, packet delimiter framing) and implement Room Code lobby and matchmaking in [`Backend/main.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/main.py).
-- [ ] **Step 4: Client Network Manager & Protocol Handlers**: Implement `obj_network_manager` using `ext_suspendee` to handle room creation, joining, piece sync, and attack routing.
-- [ ] **Step 5: Opponent Board & Rendering**: Wire remote board mirroring via `obj_player_board` (`is_local = false`) to display opponent grid, ghost falling piece, and danger gauge.
+- [x] **Step 4: Client Network Manager & Protocol Handlers**: Implement `obj_network_manager` using `ext_suspendee` to handle room creation, joining, piece sync, and attack routing.
+- [ ] **Step 5: Opponent Board & Rendering**: Wire remote board mirroring via `obj_player_board` (`is_local = false`) to display opponent grid.
 - [ ] **Step 6: UI & Polishing**: Build Room Code entry/display UI, countdown overlay, match-over victory popup, and rematch flow.

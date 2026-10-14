@@ -1,5 +1,12 @@
 if (!is_alive) exit;
 
+// Do not spawn or update pieces during multiplayer countdown or game over
+if (instance_exists(obj_network_manager)) {
+	if (obj_network_manager.room_state == "COUNTDOWN" || obj_network_manager.room_state == "GAME_OVER") {
+		exit;
+	}
+}
+
 var _owner = id;
 
 if (is_local) {

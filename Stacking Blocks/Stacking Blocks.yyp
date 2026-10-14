@@ -34,6 +34,7 @@
     {"id":{"name":"obj_player_board","path":"objects/obj_player_board/obj_player_board.yy",},},
     {"id":{"name":"obj_shape","path":"objects/obj_shape/obj_shape.yy",},},
     {"id":{"name":"rm_play","path":"rooms/rm_play/rm_play.yy",},},
+    {"id":{"name":"scr_garbage","path":"scripts/scr_garbage/scr_garbage.yy",},},
     {"id":{"name":"scr_grid","path":"scripts/scr_grid/scr_grid.yy",},},
     {"id":{"name":"scr_input","path":"scripts/scr_input/scr_input.yy",},},
     {"id":{"name":"scr_macro","path":"scripts/scr_macro/scr_macro.yy",},},

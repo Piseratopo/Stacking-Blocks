@@ -55,6 +55,10 @@ shape_properties = {
 	"I2": {
 		display_spr: spr_I2,
 		lock_spr: spr_lock_I2
+	},
+	"Gb": {
+		display_spr: spr_Mn,
+		lock_spr: spr_lock_Mn
 	}
 };
 

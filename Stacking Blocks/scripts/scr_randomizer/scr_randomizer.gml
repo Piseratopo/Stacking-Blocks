@@ -1,5 +1,8 @@
 function randomizer_all_random() {
 	var _keys = struct_get_names(global.shape_properties);
+	_keys = array_filter(_keys, function(_val) {
+	    return _val != "Gb";
+	});
 	return _keys[irandom(array_length(_keys) - 1)];
 }
 

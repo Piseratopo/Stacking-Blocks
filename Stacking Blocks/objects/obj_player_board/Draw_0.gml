@@ -36,6 +36,28 @@ if (hold_shape_name != "") {
 	}
 }
 
+// Draw Spin indicator below hold box
+if (alarm[0] > 0 && spin_text != "") {
+	var _spin_alpha = 1.0;
+	if (alarm[0] < 30) {
+		_spin_alpha = alarm[0] / 30;
+	}
+
+	draw_set_font(fnt_text);
+	draw_set_halign(fa_center);
+	draw_set_valign(fa_top);
+
+	var _hold_bottom_y = hold_piece_frame_y - sprite_get_yoffset(spr_hold_frame) + sprite_get_height(spr_hold_frame);
+	var _spin_y = _hold_bottom_y + 16;
+
+	draw_text_transformed_colour(hold_piece_frame_x + 2, _spin_y + 2, spin_text, 1, 1, 0, c_black, c_black, c_black, c_black, _spin_alpha * 0.7);
+	draw_text_transformed_colour(hold_piece_frame_x, _spin_y, spin_text, 1, 1, 0, c_white, c_white, c_white, c_white, _spin_alpha);
+
+	draw_set_halign(fa_left);
+	draw_set_valign(fa_top);
+	draw_set_font(-1);
+}
+
 // Draw incoming garbage danger gauge
 var _gauge_lines = max(pending_garbage, incoming_garbage);
 if (_gauge_lines > 0) {

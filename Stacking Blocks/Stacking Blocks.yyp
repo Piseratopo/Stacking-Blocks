@@ -26,6 +26,7 @@
   "name":"Stacking Blocks",
   "resources":[
     {"id":{"name":"ext_suspendee","path":"extensions/ext_suspendee/ext_suspendee.yy",},},
+    {"id":{"name":"fnt_text","path":"fonts/fnt_text/fnt_text.yy",},},
     {"id":{"name":"obj_block","path":"objects/obj_block/obj_block.yy",},},
     {"id":{"name":"obj_border","path":"objects/obj_border/obj_border.yy",},},
     {"id":{"name":"obj_camera","path":"objects/obj_camera/obj_camera.yy",},},

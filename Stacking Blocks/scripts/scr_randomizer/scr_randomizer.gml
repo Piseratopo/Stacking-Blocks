@@ -23,5 +23,5 @@ function randomizer_custom() {
 }
 
 function get_random_shape() {
-	return randomizer_all_random();
+	return randomizer_7_bag();
 }

@@ -24,6 +24,10 @@ next_shape_name = get_random_shape();
 hold_shape_name = "";
 can_hold        = true;
 
+// Spin UI state
+spin_text             = "";
+spin_display_duration = 120; // 2 seconds at 60 FPS
+
 // UI Next & Hold Frame coordinates
 var _right_border_x = grid_start_x + (grid_width + 1) * CELL_SIZE;
 var _top_border_y   = grid_bottom_y - (grid_height + 1) * CELL_SIZE;
@@ -197,9 +201,16 @@ grid_clear_lines = clear_lines;
 // Past = past_sixths
 // Tot  = (Slc + Cb + Sp + B + Past) * Multiplier
 // Lines sent = Tot div 6; past_sixths = Tot mod 6
-calculate_and_send_attack = function(_lines_cleared, _is_spin) {
+calculate_and_send_attack = function(_lines_cleared, _is_spin, _shape_name = "") {
 	if (_lines_cleared > 0) {
 		combo_count++;
+		if (_is_spin) {
+			spin_text = (_shape_name != "") ? (string(_shape_name) + "-SPIN") : "SPIN";
+			alarm[0] = spin_display_duration;
+		} else {
+			spin_text = "";
+			alarm[0] = -1;
+		}
 	} else {
 		combo_count = -1;
 	}
@@ -351,6 +362,8 @@ clear_board = function() {
 	is_alive               = true;
 	hold_shape_name        = "";
 	can_hold               = true;
+	spin_text              = "";
+	alarm[0]               = -1;
 
 	if (variable_instance_exists(id, "remote_piece_active")) {
 		remote_piece_active = false;

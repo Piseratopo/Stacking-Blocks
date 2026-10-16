@@ -9,7 +9,7 @@ userevents = {}
 use = {}
 prev = {}
 limit = False
-defaultlimit = 65536   # Increased from 4096 — piece_locked board-state payloads can be large
+defaultlimit = 65536
 debug = False
 splitter = "[{//V//}]"
 lock = threading.RLock()
@@ -105,8 +105,6 @@ def _cleanup_client(c, addr):
     except Exception:
         pass
 
-    # Snapshot handler outside the engine lock so the callback can safely
-    # call emit/broadcast without risk of locking against itself.
     func = None
     with lock:
         func = use.get('disconnect')
@@ -206,7 +204,6 @@ def server(host, port, **kwargs):
                 prev[str(c)] = ""
             print(f"[suspengine] {addr[0]} connected from port {addr[1]}")
             threading.Thread(target=handleclient, args=[c, addr], daemon=True).start()
-            # Snapshot connect handler outside the lock before spawning its thread.
             connect_func = None
             with lock:
                 connect_func = use.get('connect')

@@ -1,5 +1,3 @@
-/// @description Async Networking Event - Custom dispatcher (bypasses script_execute + method incompatibility)
-
 var _net_type = async_load[? "type"];
 
 if (_net_type == network_type_data) {

@@ -143,12 +143,10 @@ send_piece_sync = function(_rel_x, _rel_y, _shape, _rot) {
 	network_emit("piece_sync", _map);
 };
 
-send_piece_locked = function(_lines_cleared, _blocks_arr = [], _garbage_lines = 0, _garbage_hole = -1) {
+send_piece_locked = function(_lines_cleared, _blocks_arr = []) {
 	if (!is_connected || room_state != "IN_GAME") exit;
 	var _map = ds_map_create();
 	_map[? "lines_cleared"] = _lines_cleared;
-	_map[? "garbage_lines"] = _garbage_lines;
-	_map[? "garbage_hole"]  = _garbage_hole;
 
 	var _blist = ds_list_create();
 	for (var _i = 0; _i < array_length(_blocks_arr); _i++) {

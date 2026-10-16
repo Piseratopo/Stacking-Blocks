@@ -1,3 +1,5 @@
+#macro GAME_SPEED game_get_speed(gamespeed_fps)
+
 #macro GRID_OFFSET sprite_get_width(spr_lock_I)
 #macro CELL_SIZE sprite_get_width(spr_lock_I)
 #macro NUM_ORIENTATIONS 4

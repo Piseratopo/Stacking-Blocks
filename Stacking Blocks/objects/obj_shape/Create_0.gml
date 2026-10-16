@@ -45,7 +45,6 @@ lock_shape = function() {
 	
 	var _rows = (bbox_bottom - bbox_top) div CELL_SIZE;
 	var _cols = (bbox_right  - bbox_left) div CELL_SIZE;
-	var _placed_blocks = [];
 	
 	for (var _r = 0; _r < _rows; _r++) {
 		for (var _c = 0; _c < _cols; _c++) {
@@ -55,8 +54,6 @@ lock_shape = function() {
 			if (position_meeting(_cx, _cy, self)) {
 				var _bx = bbox_left + _c * CELL_SIZE;
 				var _by = bbox_top  + _r * CELL_SIZE;
-				var _col = grid_x_to_col(_bx, board_owner.grid_start_x);
-				var _row = grid_y_to_row(_by, board_owner.grid_bottom_y);
 				
 				instance_create_layer(_bx, _by, "Blocks", obj_block, {
 					board_owner:  board_owner,
@@ -67,27 +64,20 @@ lock_shape = function() {
 					block_name:   shape_name 
 				});
 				
-				board_owner.grid_set(_col, _row, shape_name);
-				array_push(_placed_blocks, {
-					col:   _col,
-					row:   _row,
-					shape: shape_name
-				});
+				board_owner.grid_set(
+					grid_x_to_col(_bx, board_owner.grid_start_x),
+					grid_y_to_row(_by, board_owner.grid_bottom_y),
+					shape_name
+				);
 			}
 		}
 	}
 	
 	// Clear lines and generate attack
 	var _lines_cleared = board_owner.clear_lines();
-	board_owner.calculate_and_send_attack(_lines_cleared, _is_spin, shape_name);
-
-	// Send lock event to opponents if this is the local player
-	if (board_owner.is_local && instance_exists(obj_network_manager)) {
-		var _garbage_pushed = board_owner.pending_garbage;
-		var _garbage_hole   = board_owner._last_garbage_hole;
-		obj_network_manager.send_piece_locked(_lines_cleared, _placed_blocks, _garbage_pushed, _garbage_hole);
-	}
+	board_owner.calculate_and_send_attack(_lines_cleared, _is_spin);
 	
+	// Mark for network sync in next step (after garbage is applied)
 	board_owner.finished_locking_shape = true;
 	board_owner.current_shape = noone;
 	instance_destroy();

@@ -1,16 +1,17 @@
 // Board state
-cell_size     = CELL_SIZE;
-current_shape          = noone;
+cell_size = CELL_SIZE;
+current_shape = noone;
 finished_locking_shape = false;
-incoming_garbage       = 0;
-total_lines_cleared    = 0;
+incoming_garbage = 0;
+total_lines_cleared = 0;
+last_lines_cleared = 0;    // Last line clear count for display
 
 play_grid = array_create(grid_height);
 for (var _r = 0; _r < grid_height; _r++) {
 	play_grid[_r] = array_create(grid_width, GRID_EMPTY);
 }
 
-// Versus state 
+// Versus state
 combo_count        = -1;   // -1 so first clear gives combo_count = 0 (no bonus yet)
 b2b_count          = 0;    // Consecutive difficult-clear chain length (0 = no active B2B)
 pending_garbage    = 0;    // Incoming lines queued for next piece-lock (cancellable)
@@ -32,10 +33,6 @@ depth = -100;
 next_shape_name = get_random_shape();
 hold_shape_name = "";
 can_hold        = true;
-
-// Spin UI state
-spin_text             = "";
-spin_display_duration = 120; // 2 seconds at 60 FPS
 
 // UI Next & Hold Frame coordinates
 var _right_border_x = grid_start_x + (grid_width + 1) * CELL_SIZE;
@@ -168,35 +165,41 @@ clear_lines = function() {
 	var _lines_cleared = 0;
 	var _r = 0;
 	var _owner = id;
-	
+
 	while (_r < array_length(play_grid)) {
 		if (is_row_full(_r)) {
 			var _row_y = grid_row_to_y(_r, grid_bottom_y);
-			
+
 			// 1. Destroy locked blocks in this row belonging to this board
 			with (obj_block) {
 				if (board_owner == _owner && is_locked && y == _row_y) {
 					instance_destroy();
 				}
 			}
-			
+
 			// 2. Shift all locked blocks above this row down by one cell
 			with (obj_block) {
 				if (board_owner == _owner && is_locked && y < _row_y) {
 					y += CELL_SIZE;
 				}
 			}
-			
+
 			// 3. Delete this row from the dynamic play_grid array
 			array_delete(play_grid, _r, 1);
-			
+
 			_lines_cleared++;
 		} else {
 			_r++;
 		}
 	}
-	
+
 	total_lines_cleared += _lines_cleared;
+	
+	if (_lines_cleared) {
+		last_lines_cleared = _lines_cleared;
+		alarm[0] = 2 * GAME_SPEED;
+	}
+	
 	return _lines_cleared;
 };
 
@@ -210,16 +213,9 @@ grid_clear_lines = clear_lines;
 // Past = past_sixths
 // Tot  = (Slc + Cb + Sp + B + Past) * Multiplier
 // Lines sent = Tot div 6; past_sixths = Tot mod 6
-calculate_and_send_attack = function(_lines_cleared, _is_spin, _shape_name = "") {
+calculate_and_send_attack = function(_lines_cleared, _is_spin) {
 	if (_lines_cleared > 0) {
 		combo_count++;
-		if (_is_spin) {
-			spin_text = (_shape_name != "") ? (string(_shape_name) + "-SPIN") : "SPIN";
-			alarm[0] = spin_display_duration;
-		} else {
-			spin_text = "";
-			alarm[0] = -1;
-		}
 	} else {
 		combo_count = -1;
 	}
@@ -330,42 +326,41 @@ apply_garbage = function() {
 	}
 };
 
-// ─── Remote Piece Lock & Garbage Mirroring ───────────────────────────────────
-apply_remote_lock = function(_blocks_arr, _lines_cleared, _garbage_lines = 0, _garbage_hole = -1) {
+// ─── Remote Board State Synchronization ───────────────────────────────────────
+// Rebuilds the remote board from an authoritative state snapshot sent by the opponent.
+// This ensures perfect mirroring by replacing action-based simulation with state-based keyframes.
+apply_remote_lock = function(_blocks_arr, _lines_cleared) {
 	var _owner = id;
 
-	// 1. Shift and insert garbage rows if garbage was pushed on lock
-	if (_garbage_lines > 0) {
-		var _len = array_length(play_grid);
-		while (array_length(play_grid) < _len + _garbage_lines) {
-			array_push(play_grid, array_create(grid_width, GRID_EMPTY));
-		}
-		for (var _r = _len - 1; _r >= 1; _r--) {
-			play_grid[_r + _garbage_lines] = play_grid[_r];
-		}
-		for (var _r = 1; _r <= _garbage_lines; _r++) {
-			play_grid[_r] = array_create(grid_width, GRID_EMPTY);
-		}
-
-		with (obj_block) {
-			if (board_owner == _owner && is_locked) {
-				y -= _garbage_lines * CELL_SIZE;
-			}
-		}
-
-		var _hole = (_garbage_hole >= 0) ? _garbage_hole : irandom(grid_width - 1);
-		for (var _g = 0; _g < _garbage_lines; _g++) {
-			garbage_push_single_hole(self, _g + 1, _hole);
+	// 1. Destroy all existing locked blocks belonging to this board
+	with (obj_block) {
+		if (board_owner == _owner && is_locked) {
+			instance_destroy();
 		}
 	}
 
-	// 2. Spawn locked obj_block instances
+	// 2. Reset play grid to empty
+	play_grid = array_create(grid_height);
+	for (var _r = 0; _r < grid_height; _r++) {
+		play_grid[_r] = array_create(grid_width, GRID_EMPTY);
+	}
+
+	// 3. Rebuild play_grid and spawn blocks from authoritative snapshot
 	for (var _i = 0; _i < array_length(_blocks_arr); _i++) {
 		var _b = _blocks_arr[_i];
 		var _col   = _b.col;
 		var _row   = _b.row;
 		var _shape = _b.shape;
 
+		// Ensure the grid can accommodate this row
+		while (array_length(play_grid) <= _row) {
+			array_push(play_grid, array_create(grid_width, GRID_EMPTY));
+		}
+
+		// Update play_grid
+		play_grid[_row][_col] = _shape;
+
+		// Spawn the locked block instance
 		var _bx = grid_col_to_x(_col, grid_start_x);
 		var _by = grid_row_to_y(_row, grid_bottom_y);
 		var _spr = global.shape_properties[$ _shape].lock_spr;
@@ -378,19 +373,19 @@ apply_remote_lock = function(_blocks_arr, _lines_cleared, _garbage_lines = 0, _g
 			image_speed:  0,
 			block_name:   _shape
 		});
-		grid_set(_col, _row, _shape);
 	}
 
-	// 3. Clear lines
-	clear_lines();
-
-	// 4. Update autotiling sprites
+	// 4. Update autotiling sprites for all blocks
 	with (obj_block) {
 		if (board_owner == _owner && is_locked) {
 			set_block_lock_sprite();
 		}
 	}
 
+	// 5. Store lines cleared for display
+	last_lines_cleared = _lines_cleared;
+
+	// 6. Clear the active remote piece indicator
 	remote_piece_active = false;
 };
 
@@ -428,6 +423,7 @@ clear_board = function() {
 	incoming_garbage       = 0;
 	pending_garbage        = 0;
 	total_lines_cleared    = 0;
+	last_lines_cleared     = 0;
 	combo_count            = -1;
 	b2b_count              = 0;
 	_last_garbage_hole     = -1;
@@ -435,9 +431,8 @@ clear_board = function() {
 	is_alive               = true;
 	hold_shape_name        = "";
 	can_hold               = true;
-	spin_text              = "";
-	alarm[0]               = -1;
 
+	// Reset remote piece state
 	remote_piece_active   = false;
 	remote_piece_shape    = "";
 	remote_piece_rot      = 0;

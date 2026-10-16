@@ -42,6 +42,21 @@ if (finished_locking_shape) {
 		}
 	}
 
+	// Send authoritative board state to opponents after garbage is applied
+	if (is_local && instance_exists(obj_network_manager)) {
+		var _grid_snapshot = [];
+		var _grid = play_grid;
+		for (var _r = 0; _r < array_length(_grid); _r++) {
+			for (var _c = 0; _c < array_length(_grid[_r]); _c++) {
+				var _cell = _grid[_r][_c];
+				if (_cell != GRID_EMPTY) {
+					array_push(_grid_snapshot, { col: _c, row: _r, shape: _cell });
+				}
+			}
+		}
+		obj_network_manager.send_piece_locked(total_lines_cleared, _grid_snapshot);
+	}
+
 	finished_locking_shape = false;
 	can_hold = true;
 }

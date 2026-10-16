@@ -132,11 +132,9 @@ if (_net_type == network_type_data) {
 				
 			} else if (_event == "piece_locked") {
 				if (ds_exists(_data, ds_type_map)) {
-					var _slot          = real(_data[? "slot"]);
-					var _lines         = ds_map_exists(_data, "lines_cleared") ? real(_data[? "lines_cleared"]) : 0;
-					var _garbage_lines = ds_map_exists(_data, "garbage_lines") ? real(_data[? "garbage_lines"]) : 0;
-					var _garbage_hole  = ds_map_exists(_data, "garbage_hole")  ? real(_data[? "garbage_hole"])  : -1;
-					var _board         = ensure_remote_board(_slot, "Opponent");
+					var _slot  = real(_data[? "slot"]);
+					var _lines = ds_map_exists(_data, "lines_cleared") ? real(_data[? "lines_cleared"]) : 0;
+					var _board = ensure_remote_board(_slot, "Opponent");
 					if (_board != noone) {
 						var _blocks = [];
 						if (ds_map_exists(_data, "blocks")) {
@@ -154,7 +152,7 @@ if (_net_type == network_type_data) {
 								}
 							}
 						}
-						_board.apply_remote_lock(_blocks, _lines, _garbage_lines, _garbage_hole);
+						_board.apply_remote_lock(_blocks, _lines);
 					}
 				}
 				

@@ -161,7 +161,7 @@ is_row_full = function(_row) {
 };
 
 // ─── Line-clear core ──────────────────────────────────────────────────────────
-clear_lines = function() {
+clear_lines = function(_is_spin, shape_name) {
 	var _lines_cleared = 0;
 	var _r = 0;
 	var _owner = id;
@@ -195,8 +195,9 @@ clear_lines = function() {
 
 	total_lines_cleared += _lines_cleared;
 	
-	if (_lines_cleared) {
+	if (_lines_cleared || _is_spin) {
 		last_lines_cleared = _lines_cleared;
+		spin_text = _is_spin ? shape_name : "";
 		alarm[0] = 2 * GAME_SPEED;
 	}
 	

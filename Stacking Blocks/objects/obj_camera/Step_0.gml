@@ -3,8 +3,8 @@ if (instance_exists(obj_player_board)) {
 		var _min_x = 999999;
 		var _max_x = -999999;
 		with (obj_player_board) {
-			_min_x = min(_min_x, grid_start_x);
-			_max_x = max(_max_x, grid_start_x + grid_width * CELL_SIZE);
+			_min_x = min(_min_x, grid_start_x - 160);
+			_max_x = max(_max_x, grid_start_x + grid_width * CELL_SIZE + 160);
 		}
 		target_x = (_min_x + _max_x) / 2 - (camera_width / 2);
 	} else {

@@ -1,6 +1,4 @@
 // ─── Network Manager ────────────────────────────────────────────────────────
-// Manages socket connection to Python backend server (suspengine / main.py),
-// packet serialization/deserialization, room lifecycle, and match synchronization.
 
 // Connection properties
 server_ip    = "127.0.0.1";
@@ -75,10 +73,9 @@ ensure_remote_board = function(_slot, _name) {
 	if (_existing != noone) return _existing;
 	if (!instance_exists(obj_controller)) return noone;
 	
-	// Position opponent board to the right of local board with generous spacing
+	// Position opponent board to the right of local board (800px spacing accommodates UI frames cleanly)
 	var _board_idx = array_length(obj_controller.remote_boards) + 1;
-	var _spacing_cells = (obj_controller.grid_width + 20) * _board_idx;
-	var _opp_x = obj_controller.grid_start_x + _spacing_cells * CELL_SIZE;
+	var _opp_x = obj_controller.grid_start_x + _board_idx * 800;
 	var _opp_y = obj_controller.grid_bottom_y;
 	return obj_controller.spawn_remote_board(_slot, _name, _opp_x, _opp_y, _slot);
 };
@@ -136,20 +133,34 @@ send_ko = function() {
 	network_emit("player_ko", _map);
 };
 
-send_piece_sync = function(_x, _y, _shape, _rot) {
+send_piece_sync = function(_rel_x, _rel_y, _shape, _rot) {
 	if (!is_connected || room_state != "IN_GAME") exit;
 	var _map = ds_map_create();
-	_map[? "x"]     = _x;
-	_map[? "y"]     = _y;
+	_map[? "x"]     = _rel_x;
+	_map[? "y"]     = _rel_y;
 	_map[? "shape"] = _shape;
 	_map[? "rot"]   = _rot;
 	network_emit("piece_sync", _map);
 };
 
-send_piece_locked = function(_lines_cleared) {
+send_piece_locked = function(_lines_cleared, _blocks_arr = [], _garbage_lines = 0, _garbage_hole = -1) {
 	if (!is_connected || room_state != "IN_GAME") exit;
 	var _map = ds_map_create();
 	_map[? "lines_cleared"] = _lines_cleared;
+	_map[? "garbage_lines"] = _garbage_lines;
+	_map[? "garbage_hole"]  = _garbage_hole;
+
+	var _blist = ds_list_create();
+	for (var _i = 0; _i < array_length(_blocks_arr); _i++) {
+		var _bmap = ds_map_create();
+		_bmap[? "col"]   = _blocks_arr[_i].col;
+		_bmap[? "row"]   = _blocks_arr[_i].row;
+		_bmap[? "shape"] = _blocks_arr[_i].shape;
+		ds_list_add(_blist, _bmap);
+		ds_list_mark_as_map(_blist, _i);
+	}
+	ds_map_add_list(_map, "blocks", _blist);
+
 	network_emit("piece_locked", _map);
 };
 

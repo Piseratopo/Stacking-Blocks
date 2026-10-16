@@ -201,10 +201,12 @@ Packets conform to the existing `ext_suspendee` structure:
 - Binds event callbacks via `network_listen()`.
 - Dispatches state updates to local and remote board objects.
 
-### 6.2 Remote Board Representation (`obj_player_board` with `is_local = false`)
-- Spawned dynamically via `obj_controller.spawn_remote_board(...)` at `x = 920` (or grid layout for 1 vs many).
-- Holds an independent `play_grid` and renders locked blocks with autotiled sprites.
-- Listens to `piece_sync` to render the opponent's active falling piece with smooth interpolation.
+### 6.2 Remote Board Representation (`obj_player_board` with `is_local = false`) - [COMPLETED]
+- Spawned dynamically via `obj_controller.spawn_remote_board(...)` at `x = 1280` (with 800px spacing for 1 vs many).
+- Holds an independent `play_grid` and renders locked blocks with autotiled connected textures via `set_block_lock_sprite()`.
+- Synchronizes normalized board-relative falling piece coordinates via `piece_sync` with smooth interpolation (`lerp`) in `Step_0.gml` and active piece rendering in `Draw_0.gml`.
+- Receives authoritative `piece_locked` packets to spawn locked `obj_block` instances, mirror garbage pushes, clear lines, and update connected borders.
+- Renders player identity header tags ("YOU" vs "OPPONENT") and danger gauges.
 - Extensible: multiple remote boards can be instantiated and arranged dynamically for 1 vs many.
 
 ### 6.3 Lobby UI & Room Code Screens
@@ -224,5 +226,5 @@ Packets conform to the existing `ext_suspendee` structure:
 - [x] **Step 2: Ownership & Garbage Engine**: Link `obj_shape` and `obj_block` to `board_owner`; sixth-counter attack system, immobile spin check, garbage cancellation queue, and line push mechanism.
 - [x] **Step 3: Backend Room System**: Harden [`Backend/suspengine.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/suspengine.py) (threading locks, packet delimiter framing) and implement Room Code lobby and matchmaking in [`Backend/main.py`](file:///home/piseratopo/Desktop/Projektoj/Stacking-Blocks/Backend/main.py).
 - [x] **Step 4: Client Network Manager & Protocol Handlers**: Implement `obj_network_manager` using `ext_suspendee` to handle room creation, joining, piece sync, and attack routing.
-- [ ] **Step 5: Opponent Board & Rendering**: Wire remote board mirroring via `obj_player_board` (`is_local = false`) to display opponent grid.
+- [x] **Step 5: Opponent Board & Rendering**: Wire remote board mirroring via `obj_player_board` (`is_local = false`) to display opponent grid, smooth piece sync, lock updates, autotiling, and garbage pushes.
 - [ ] **Step 6: UI & Polishing**: Build Room Code entry/display UI, countdown overlay, match-over victory popup, and rematch flow.

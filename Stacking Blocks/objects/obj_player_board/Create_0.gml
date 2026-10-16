@@ -17,6 +17,15 @@ pending_garbage    = 0;    // Incoming lines queued for next piece-lock (cancell
 _last_garbage_hole = -1;   // Server-supplied hole column; -1 means use random
 past_sixths        = 0;    // Leftover sixth-counters carried into next attack
 
+// Remote piece state (for remote opponent boards)
+remote_piece_active   = false;
+remote_piece_shape    = "";
+remote_piece_rot      = 0;
+remote_piece_target_x = 0;
+remote_piece_target_y = 0;
+remote_piece_draw_x   = 0;
+remote_piece_draw_y   = 0;
+
 depth = -100;
 
 // Next & Hold piece queue 
@@ -321,6 +330,70 @@ apply_garbage = function() {
 	}
 };
 
+// ─── Remote Piece Lock & Garbage Mirroring ───────────────────────────────────
+apply_remote_lock = function(_blocks_arr, _lines_cleared, _garbage_lines = 0, _garbage_hole = -1) {
+	var _owner = id;
+
+	// 1. Shift and insert garbage rows if garbage was pushed on lock
+	if (_garbage_lines > 0) {
+		var _len = array_length(play_grid);
+		while (array_length(play_grid) < _len + _garbage_lines) {
+			array_push(play_grid, array_create(grid_width, GRID_EMPTY));
+		}
+		for (var _r = _len - 1; _r >= 1; _r--) {
+			play_grid[_r + _garbage_lines] = play_grid[_r];
+		}
+		for (var _r = 1; _r <= _garbage_lines; _r++) {
+			play_grid[_r] = array_create(grid_width, GRID_EMPTY);
+		}
+
+		with (obj_block) {
+			if (board_owner == _owner && is_locked) {
+				y -= _garbage_lines * CELL_SIZE;
+			}
+		}
+
+		var _hole = (_garbage_hole >= 0) ? _garbage_hole : irandom(grid_width - 1);
+		for (var _g = 0; _g < _garbage_lines; _g++) {
+			garbage_push_single_hole(self, _g + 1, _hole);
+		}
+	}
+
+	// 2. Spawn locked obj_block instances
+	for (var _i = 0; _i < array_length(_blocks_arr); _i++) {
+		var _b = _blocks_arr[_i];
+		var _col   = _b.col;
+		var _row   = _b.row;
+		var _shape = _b.shape;
+
+		var _bx = grid_col_to_x(_col, grid_start_x);
+		var _by = grid_row_to_y(_row, grid_bottom_y);
+		var _spr = global.shape_properties[$ _shape].lock_spr;
+
+		instance_create_layer(_bx, _by, "Blocks", obj_block, {
+			board_owner:  _owner,
+			is_locked:    true,
+			sprite_index: _spr,
+			image_index:  0,
+			image_speed:  0,
+			block_name:   _shape
+		});
+		grid_set(_col, _row, _shape);
+	}
+
+	// 3. Clear lines
+	clear_lines();
+
+	// 4. Update autotiling sprites
+	with (obj_block) {
+		if (board_owner == _owner && is_locked) {
+			set_block_lock_sprite();
+		}
+	}
+
+	remote_piece_active = false;
+};
+
 // ─── Reset / Clear Board ─────────────────────────────────────────────────────
 clear_board = function() {
 	var _owner = id;
@@ -365,9 +438,13 @@ clear_board = function() {
 	spin_text              = "";
 	alarm[0]               = -1;
 
-	if (variable_instance_exists(id, "remote_piece_active")) {
-		remote_piece_active = false;
-	}
+	remote_piece_active   = false;
+	remote_piece_shape    = "";
+	remote_piece_rot      = 0;
+	remote_piece_target_x = 0;
+	remote_piece_target_y = 0;
+	remote_piece_draw_x   = 0;
+	remote_piece_draw_y   = 0;
 
 	// 5. Generate fresh next piece from active seed
 	next_shape_name = get_random_shape();

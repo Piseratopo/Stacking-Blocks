@@ -114,14 +114,16 @@ if (_net_type == network_type_data) {
 			} else if (_event == "piece_sync") {
 				if (ds_exists(_data, ds_type_map)) {
 					var _slot  = real(_data[? "slot"]);
-					var _px    = real(_data[? "x"]);
-					var _py    = real(_data[? "y"]);
+					var _rel_x = real(_data[? "x"]);
+					var _rel_y = real(_data[? "y"]);
 					var _shape = string(_data[? "shape"]);
 					var _rot   = real(_data[? "rot"]);
 					var _board = ensure_remote_board(_slot, "Opponent");
 					if (_board != noone) {
-						_board.remote_piece_x      = _px;
-						_board.remote_piece_y      = _py;
+						var _tx = _board.grid_start_x + _rel_x;
+						var _ty = _board.grid_bottom_y + _rel_y;
+						_board.remote_piece_draw_x = _tx;
+						_board.remote_piece_draw_y = _ty;
 						_board.remote_piece_shape  = _shape;
 						_board.remote_piece_rot    = _rot;
 						_board.remote_piece_active = true;
@@ -130,12 +132,29 @@ if (_net_type == network_type_data) {
 				
 			} else if (_event == "piece_locked") {
 				if (ds_exists(_data, ds_type_map)) {
-					var _slot  = real(_data[? "slot"]);
-					var _lines = ds_map_exists(_data, "lines_cleared") ? real(_data[? "lines_cleared"]) : 0;
-					var _board = ensure_remote_board(_slot, "Opponent");
+					var _slot          = real(_data[? "slot"]);
+					var _lines         = ds_map_exists(_data, "lines_cleared") ? real(_data[? "lines_cleared"]) : 0;
+					var _garbage_lines = ds_map_exists(_data, "garbage_lines") ? real(_data[? "garbage_lines"]) : 0;
+					var _garbage_hole  = ds_map_exists(_data, "garbage_hole")  ? real(_data[? "garbage_hole"])  : -1;
+					var _board         = ensure_remote_board(_slot, "Opponent");
 					if (_board != noone) {
-						_board.remote_piece_active  = false;
-						_board.total_lines_cleared += _lines;
+						var _blocks = [];
+						if (ds_map_exists(_data, "blocks")) {
+							var _blist = _data[? "blocks"];
+							if (ds_exists(_blist, ds_type_list)) {
+								for (var _bi = 0; _bi < ds_list_size(_blist); _bi++) {
+									var _bm = _blist[| _bi];
+									if (ds_exists(_bm, ds_type_map)) {
+										array_push(_blocks, {
+											col:   real(_bm[? "col"]),
+											row:   real(_bm[? "row"]),
+											shape: string(_bm[? "shape"])
+										});
+									}
+								}
+							}
+						}
+						_board.apply_remote_lock(_blocks, _lines, _garbage_lines, _garbage_hole);
 					}
 				}
 				

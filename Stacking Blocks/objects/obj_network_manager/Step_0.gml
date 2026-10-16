@@ -9,7 +9,7 @@ if (ping_timer >= 180) {
 	}
 }
 
-// 2. Active Piece Synchronization
+// 2. Active Piece Synchronization (Normalized coordinates relative to local board origin)
 if (room_state == "IN_GAME" && is_connected && instance_exists(obj_controller)) {
 	var _lb = obj_controller.local_board;
 	if (instance_exists(_lb) && _lb.is_alive && instance_exists(_lb.current_shape)) {
@@ -18,7 +18,9 @@ if (room_state == "IN_GAME" && is_connected && instance_exists(obj_controller)) 
 			last_sync_x   = _s.x;
 			last_sync_y   = _s.y;
 			last_sync_rot = _s.orientation;
-			send_piece_sync(_s.x, _s.y, _s.shape_name, _s.orientation);
+			var _rel_x    = _s.x - _lb.grid_start_x;
+			var _rel_y    = _s.y - _lb.grid_bottom_y;
+			send_piece_sync(_rel_x, _rel_y, _s.shape_name, _s.orientation);
 		}
 	}
 }

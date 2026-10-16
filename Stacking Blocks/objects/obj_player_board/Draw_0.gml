@@ -58,6 +58,22 @@ if (alarm[0] > 0 && spin_text != "") {
 	draw_set_font(-1);
 }
 
+// Draw Remote Opponent Falling Piece
+if (!is_local && remote_piece_active && remote_piece_shape != "") {
+	var _shape_props = global.shape_properties;
+	if (struct_exists(_shape_props, remote_piece_shape)) {
+		var _shape_data = _shape_props[$ remote_piece_shape];
+		var _shape_spr  = _shape_data.display_spr;
+		var _angle      = (360 - remote_piece_rot * 90) % 360;
+
+		draw_sprite_ext(
+			_shape_spr, 0,
+			remote_piece_draw_x, remote_piece_draw_y,
+			1, 1, _angle, c_white, 1.0
+		);
+	}
+}
+
 // Draw incoming garbage danger gauge
 var _gauge_lines = max(pending_garbage, incoming_garbage);
 if (_gauge_lines > 0) {

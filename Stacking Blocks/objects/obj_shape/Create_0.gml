@@ -75,7 +75,7 @@ lock_shape = function() {
 	
 	// Clear lines and generate attack
 	var _lines_cleared = board_owner.clear_lines(_is_spin, shape_name);
-	board_owner.calculate_and_send_attack(_lines_cleared, _is_spin);
+	board_owner.calculate_and_send_attack(_lines_cleared, _is_spin, shape_name);
 	
 	// Mark for network sync in next step (after garbage is applied)
 	board_owner.finished_locking_shape = true;

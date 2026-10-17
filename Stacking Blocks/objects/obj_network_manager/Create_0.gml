@@ -133,20 +133,26 @@ send_ko = function() {
 	network_emit("player_ko", _map);
 };
 
-send_piece_sync = function(_rel_x, _rel_y, _shape, _rot) {
+send_piece_sync = function(_rel_x, _rel_y, _shape, _rot, _next_shape = "", _hold_shape = "") {
 	if (!is_connected || room_state != "IN_GAME") exit;
 	var _map = ds_map_create();
-	_map[? "x"]     = _rel_x;
-	_map[? "y"]     = _rel_y;
-	_map[? "shape"] = _shape;
-	_map[? "rot"]   = _rot;
+	_map[? "x"]          = _rel_x;
+	_map[? "y"]          = _rel_y;
+	_map[? "shape"]      = _shape;
+	_map[? "rot"]        = _rot;
+	if (_next_shape != "") {
+		_map[? "next_shape"] = _next_shape;
+	}
+	_map[? "hold_shape"] = _hold_shape;
 	network_emit("piece_sync", _map);
 };
 
-send_piece_locked = function(_lines_cleared, _blocks_arr = []) {
+send_piece_locked = function(_lines_cleared, _blocks_arr = [], _next_shape = "", _hold_shape = "") {
 	if (!is_connected || room_state != "IN_GAME") exit;
 	var _map = ds_map_create();
 	_map[? "lines_cleared"] = _lines_cleared;
+	_map[? "next_shape"] = _next_shape;
+	_map[? "hold_shape"] = _hold_shape;
 
 	var _blist = ds_list_create();
 	for (var _i = 0; _i < array_length(_blocks_arr); _i++) {

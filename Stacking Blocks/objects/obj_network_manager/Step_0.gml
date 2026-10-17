@@ -20,7 +20,7 @@ if (room_state == "IN_GAME" && is_connected && instance_exists(obj_controller)) 
 			last_sync_rot = _s.orientation;
 			var _rel_x    = _s.x - _lb.grid_start_x;
 			var _rel_y    = _s.y - _lb.grid_bottom_y;
-			send_piece_sync(_rel_x, _rel_y, _s.shape_name, _s.orientation);
+			send_piece_sync(_rel_x, _rel_y, _s.shape_name, _s.orientation, _lb.next_shape_name, _lb.hold_shape_name);
 		}
 	}
 }
@@ -49,4 +49,9 @@ if (keyboard_check_pressed(ord("R"))) {
 if (keyboard_check_pressed(ord("L"))) {
 	// Leave current room
 	send_leave();
+}
+
+if (keyboard_check_pressed(ord("G"))) {
+	send_attack(20);
+	// receive_garbage(20);
 }

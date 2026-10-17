@@ -88,7 +88,7 @@ if (_net_type == network_type_data) {
 				}
 				room_state = "IN_GAME";
 				random_set_seed(match_seed);
-				
+
 				// Spawn remote boards for all non-local slots
 				for (var _i = 0; _i < array_length(players); _i++) {
 					var _p = players[_i];
@@ -96,7 +96,7 @@ if (_net_type == network_type_data) {
 						ensure_remote_board(_p.slot, _p.name);
 					}
 				}
-				
+
 				// Clear boards and destroy any falling pieces for match start
 				if (instance_exists(obj_controller)) {
 					obj_controller.reset_game();
@@ -127,14 +127,24 @@ if (_net_type == network_type_data) {
 						_board.remote_piece_shape  = _shape;
 						_board.remote_piece_rot    = _rot;
 						_board.remote_piece_active = true;
+
+						if (ds_map_exists(_data, "next_shape")) {
+							var _ns = string(_data[? "next_shape"]);
+							if (_ns != "") _board.next_shape_name = _ns;
+						}
+						if (ds_map_exists(_data, "hold_shape")) {
+							_board.hold_shape_name = string(_data[? "hold_shape"]);
+						}
 					}
 				}
 				
 			} else if (_event == "piece_locked") {
 				if (ds_exists(_data, ds_type_map)) {
-					var _slot  = real(_data[? "slot"]);
-					var _lines = ds_map_exists(_data, "lines_cleared") ? real(_data[? "lines_cleared"]) : 0;
-					var _board = ensure_remote_board(_slot, "Opponent");
+					var _slot       = real(_data[? "slot"]);
+					var _lines      = ds_map_exists(_data, "lines_cleared") ? real(_data[? "lines_cleared"]) : 0;
+					var _next_shape = ds_map_exists(_data, "next_shape") ? string(_data[? "next_shape"]) : "";
+					var _hold_shape = ds_map_exists(_data, "hold_shape") ? string(_data[? "hold_shape"]) : "";
+					var _board      = ensure_remote_board(_slot, "Opponent");
 					if (_board != noone) {
 						var _blocks = [];
 						if (ds_map_exists(_data, "blocks")) {
@@ -152,7 +162,7 @@ if (_net_type == network_type_data) {
 								}
 							}
 						}
-						_board.apply_remote_lock(_blocks, _lines);
+						_board.apply_remote_lock(_blocks, _lines, _next_shape, _hold_shape);
 					}
 				}
 				

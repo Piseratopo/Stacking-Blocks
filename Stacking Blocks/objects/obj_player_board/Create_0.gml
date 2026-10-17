@@ -2,9 +2,9 @@
 cell_size = CELL_SIZE;
 current_shape = noone;
 finished_locking_shape = false;
-incoming_garbage = 0;
 total_lines_cleared = 0;
-last_lines_cleared = 0;    // Last line clear count for display
+last_lines_cleared = 0;
+infinite_mode = true;
 
 play_grid = array_create(grid_height);
 for (var _r = 0; _r < grid_height; _r++) {
@@ -22,8 +22,6 @@ past_sixths        = 0;    // Leftover sixth-counters carried into next attack
 remote_piece_active   = false;
 remote_piece_shape    = "";
 remote_piece_rot      = 0;
-remote_piece_target_x = 0;
-remote_piece_target_y = 0;
 remote_piece_draw_x   = 0;
 remote_piece_draw_y   = 0;
 
@@ -47,42 +45,35 @@ hold_piece_frame_y = _top_border_y  + sprite_get_yoffset(spr_hold_frame);
 
 target_y = next_piece_frame_y;
 
-// ─── Borders Setup ───────────────────────────────────────────────────────────
-borders = [];
+// Borders Setup
 spawn_borders = function() {
 	var _owner = id;
 	var _top_y = grid_bottom_y - (grid_height + 1) * CELL_SIZE;
 	var _h     = grid_height + 1;
-	
-	// Left wall
-	var _left = instance_create_layer(grid_start_x - CELL_SIZE, _top_y, "Blocks", obj_border);
+
+	// Left wall (garbage queue visualizer)
+	var _left = instance_create_layer(grid_start_x - CELL_SIZE, _top_y, "Blocks", obj_garbage_queue);
 	_left.image_yscale = _h;
 	_left.board_owner  = _owner;
-	array_push(borders, _left);
-	
+
 	// Right wall
 	var _right = instance_create_layer(grid_start_x + grid_width * CELL_SIZE, _top_y, "Blocks", obj_border);
 	_right.image_yscale = _h;
 	_right.board_owner  = _owner;
-	array_push(borders, _right);
-	
+
 	// Floor
 	var _floor = instance_create_layer(grid_start_x, grid_bottom_y, "Blocks", obj_border);
 	_floor.image_xscale = grid_width;
 	_floor.board_owner  = _owner;
-	array_push(borders, _floor);
-	
+
 	// Corners
 	var _bl = instance_create_layer(grid_start_x - CELL_SIZE, grid_bottom_y, "Blocks", obj_border);
 	_bl.board_owner = _owner;
-	array_push(borders, _bl);
-	
+
 	var _br = instance_create_layer(grid_start_x + grid_width * CELL_SIZE, grid_bottom_y, "Blocks", obj_border);
 	_br.board_owner = _owner;
-	array_push(borders, _br);
 };
 
-// Dynamic border spawner
 spawn_borders();
 
 // ─── Spawn Helpers ───────────────────────────────────────────────────────────
@@ -161,7 +152,7 @@ is_row_full = function(_row) {
 };
 
 // ─── Line-clear core ──────────────────────────────────────────────────────────
-clear_lines = function(_is_spin, shape_name) {
+clear_lines = function(_is_spin = false, shape_name = "") {
 	var _lines_cleared = 0;
 	var _r = 0;
 	var _owner = id;
@@ -194,7 +185,7 @@ clear_lines = function(_is_spin, shape_name) {
 	}
 
 	total_lines_cleared += _lines_cleared;
-	
+
 	if (_lines_cleared || _is_spin) {
 		last_lines_cleared = _lines_cleared;
 		spin_text = _is_spin ? shape_name : "";
@@ -309,16 +300,21 @@ apply_garbage = function() {
 		var _target_row = _g + 1;
 		garbage_push_single_hole(self, _target_row, _hole);
 	}
+};
 
-	// 4. Top-out detection
+// ─── KO Detection (Multiplayer) ───────────────────────────────────────────────
+check_ko = function() {
 	var _top_limit_y = grid_bottom_y - grid_height * CELL_SIZE;
 	var _topped_out  = false;
+	var _owner = id;
+
 	with (obj_block) {
 		if (board_owner == _owner && is_locked && y < _top_limit_y) {
 			_topped_out = true;
 			break;
 		}
 	}
+
 	if (_topped_out && is_local) {
 		is_alive = false;
 		if (instance_exists(obj_network_manager)) {
@@ -328,9 +324,7 @@ apply_garbage = function() {
 };
 
 // ─── Remote Board State Synchronization ───────────────────────────────────────
-// Rebuilds the remote board from an authoritative state snapshot sent by the opponent.
-// This ensures perfect mirroring by replacing action-based simulation with state-based keyframes.
-apply_remote_lock = function(_blocks_arr, _lines_cleared) {
+apply_remote_lock = function(_blocks_arr, _lines_cleared, _next_shape = "", _hold_shape = "") {
 	var _owner = id;
 
 	// 1. Destroy all existing locked blocks belonging to this board
@@ -386,7 +380,15 @@ apply_remote_lock = function(_blocks_arr, _lines_cleared) {
 	// 5. Store lines cleared for display
 	last_lines_cleared = _lines_cleared;
 
-	// 6. Clear the active remote piece indicator
+	// 6. Update next and hold queues for remote board
+	if (_next_shape != "") {
+		next_shape_name = _next_shape;
+	}
+	if (_hold_shape != "") {
+		hold_shape_name = _hold_shape;
+	}
+
+	// 7. Clear the active remote piece indicator
 	remote_piece_active = false;
 };
 
@@ -421,7 +423,6 @@ clear_board = function() {
 
 	// 4. Reset versus & game state variables
 	finished_locking_shape = false;
-	incoming_garbage       = 0;
 	pending_garbage        = 0;
 	total_lines_cleared    = 0;
 	last_lines_cleared     = 0;
@@ -432,6 +433,11 @@ clear_board = function() {
 	is_alive               = true;
 	hold_shape_name        = "";
 	can_hold               = true;
+
+	// Only generate next_shape for local boards; remote boards get it from network
+	if (is_local) {
+		next_shape_name = get_random_shape();
+	}
 
 	// Reset remote piece state
 	remote_piece_active   = false;

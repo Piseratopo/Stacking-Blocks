@@ -73,15 +73,6 @@ if (!is_local && remote_piece_active && remote_piece_shape != "") {
 	);
 }
 
-// Draw incoming garbage danger gauge
-var _gauge_lines = max(pending_garbage, incoming_garbage);
-if (_gauge_lines > 0) {
-	var _meter_x = grid_start_x - 8;
-	var _meter_bottom_y = grid_bottom_y;
-	var _meter_height = min(_gauge_lines, grid_height) * CELL_SIZE;
-	draw_rectangle_colour(_meter_x - 6, _meter_bottom_y - _meter_height, _meter_x, _meter_bottom_y, c_red, c_red, c_red, c_red, false);
-}
-
 // Draw K.O. overlay if player topped out
 if (!is_alive) {
 	draw_set_halign(fa_center);

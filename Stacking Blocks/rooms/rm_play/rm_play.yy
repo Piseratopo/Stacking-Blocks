@@ -22,8 +22,8 @@
   ],
   "name":"rm_play",
   "parent":{
-    "name":"Stacking Blocks",
-    "path":"Stacking Blocks.yyp",
+    "name":"Room",
+    "path":"folders/Room.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

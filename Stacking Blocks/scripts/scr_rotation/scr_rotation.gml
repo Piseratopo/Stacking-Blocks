@@ -103,7 +103,7 @@ function simple_wall_kick(_shape_name = shape_name, _old_orientation = orientati
 
 function zig_zag_wall_kick(_shape_name = shape_name, _old_orientation = orientation, _new_orientation = 0) {
    var _diff = (_new_orientation - _old_orientation + NUM_ORIENTATIONS) % NUM_ORIENTATIONS;
-   var _kicks_ccw = [
+   static _kicks_ccw = [
       [ 0,  0], [ 0,  1], [ 1,  0], [ 2,  0], [ 1,  1], 
       [ 0,  2], [ 1,  2], [ 2,  1], [ 2,  2], [-1,  0],
       [-2,  0], [-1,  1], [-1,  2], [ 2, -1], [-2,  2],
@@ -111,7 +111,7 @@ function zig_zag_wall_kick(_shape_name = shape_name, _old_orientation = orientat
       [ 0,  2], [ 1,  1], [ 1,  2], [ 2,  1], [ 2,  2]
    ];
 
-   var _kicks_cw = [
+   static _kicks_cw = [
       [ 0,  0], [ 0,  1], [-1,  0], [-2,  0], [-1,  1],
       [ 0,  2], [-1,  2], [-2,  1], [-2,  2], [ 1,  0],
       [ 2,  0], [ 1,  1], [ 1,  2], [-2, -1], [ 2,  2],
@@ -124,8 +124,15 @@ function zig_zag_wall_kick(_shape_name = shape_name, _old_orientation = orientat
 	
    if (_diff == ROTATION_CCW) {
 		_kicks = _kicks_ccw;
-	} else {
+	} else if (_diff == ROTATION_CW) {
 		_kicks = _kicks_cw;
+	} else {
+		var _key = string(_old_orientation) + "->" + string(_new_orientation);
+		if (_key == "0->2" or _key == "1->3") {
+			_kicks = _kicks_ccw;
+		} else {
+			_kicks = _kicks_cw;
+		}
 	}
    
    for (var _k = 0; _k < array_length(_kicks); _k++) {

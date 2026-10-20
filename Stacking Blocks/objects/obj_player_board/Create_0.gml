@@ -190,6 +190,10 @@ clear_lines = function(_is_spin = false, shape_name = "") {
 		last_lines_cleared = _lines_cleared;
 		spin_text = _is_spin ? shape_name : "";
 		alarm[0] = 2 * GAME_SPEED;
+
+		var _sounds = [snd_hero_jp, snd_juan_jp, snd_tooth_jp, snd_tree_jp, snd_fork_jp];
+		var _idx = clamp(_lines_cleared, 0, array_length(_sounds) - 1);
+		audio_play_sound(_sounds[_idx], 10, false);
 	}
 	
 	return _lines_cleared;

@@ -1,34 +1,49 @@
 event_inherited();
 
 // Drop
-
 fall_fast = 1;
 fall_normal = game_get_speed(gamespeed_fps) div 3 * 2;
 fall_delay = fall_normal;
 alarm[0] = fall_delay;
 
 // Horizontal movements
-
 move_DAS = 12;
-move_ARR = 1;
+move_ARR = 0;
 move_dir = 0;
 
 is_touching_left = function() {
-	return !place_meeting(x - CELL_SIZE, y, obj_border) && bbox_left - CELL_SIZE >= board_owner.grid_start_x;
-}
+   return !place_meeting(x - CELL_SIZE, y, obj_border) && bbox_left - CELL_SIZE >= board_owner.grid_start_x;
+};
 
 is_touching_right = function() {
-	return !place_meeting(x + CELL_SIZE, y, obj_border) && bbox_right <= board_owner.grid_start_x + (board_owner.grid_width - 1) * CELL_SIZE;
-}
+   return !place_meeting(x + CELL_SIZE, y, obj_border) && bbox_right <= board_owner.grid_start_x + (board_owner.grid_width - 1) * CELL_SIZE;
+};
 
 is_touching_up = function() {
-	return !place_meeting(x, y - CELL_SIZE, obj_border);
-}
+   return !place_meeting(x, y - CELL_SIZE, obj_border);
+};
+
+shift_leftmost = function() {
+   var _moved = false;
+   while (is_touching_left()) {
+      x -= CELL_SIZE;
+      _moved = true;
+   }
+   return _moved;
+};
+
+shift_rightmost = function() {
+   var _moved = false;
+   while (is_touching_right()) {
+      x += CELL_SIZE;
+      _moved = true;
+   }
+   return _moved;
+};
 
 // Lock settings
-
 dead_sprite_id = [];
-lock_delay = fall_delay;
+lock_delay = 1200;
 lock_delay_reset = 15;
 lock_resets = 0;
 lowest_y = y;
@@ -38,19 +53,16 @@ rotation_count = 0;
 rotation_limit = 100;
 
 // Art and style
-
 set_block_lock_sprite = function() {
-	var check_block = function(_dx, _dy) {
-		var _inst = instance_place(x + _dx, y + _dy, obj_block);
-		if (_inst && _inst.is_locked && _inst.board_owner == board_owner) {
-			return not (_inst.block_name == block_name);
-		}
-		return true;
-	};
+   var check_block = function(_dx, _dy) {
+      var _inst = instance_place(x + _dx, y + _dy, obj_block);
+      if (_inst && _inst.is_locked && _inst.board_owner == board_owner) {
+         return not (_inst.block_name == block_name);
+      }
+      return true;
+   };
 
-
-	
-	var _nw = check_block(-CELL_SIZE, -CELL_SIZE);
+   var _nw = check_block(-CELL_SIZE, -CELL_SIZE);
    var _n  = check_block(0, -CELL_SIZE);
    var _ne = check_block(CELL_SIZE, -CELL_SIZE);
    var _w  = check_block(-CELL_SIZE, 0);
@@ -58,22 +70,29 @@ set_block_lock_sprite = function() {
    var _sw = check_block(-CELL_SIZE, CELL_SIZE);
    var _s  = check_block(0, CELL_SIZE);
    var _se = check_block(CELL_SIZE, CELL_SIZE);
-	
-	var get_quad = function(_horz, _vert, _corner) {
-      if (_vert && _horz) return "O";             // Outer Corner
-      if (_vert && !_horz) return "V";              // Vertical Edge
-      if (!_vert && _horz) return "H";              // Horizontal Edge
-      if (!_vert && !_horz && _corner) return "C";   // Inner Corner
-      return "I";                                   // Fully Inside
+
+   var get_quad = function(_horz, _vert, _corner) {
+      if (_vert && _horz) {
+         return "O"; // Outer Corner
+      }
+      if (_vert && !_horz) {
+         return "V"; // Vertical Edge
+      }
+      if (!_vert && _horz) {
+         return "H"; // Horizontal Edge
+      }
+      if (!_vert && !_horz && _corner) {
+         return "C"; // Inner Corner
+      }
+      return "I"; // Fully Inside
    };
-    
+
    var _tl = get_quad(_n, _w, _nw);
    var _tr = get_quad(_n, _e, _ne);
    var _bl = get_quad(_s, _w, _sw);
    var _br = get_quad(_s, _e, _se);
-   
+
    var _key = _tl + "," + _tr + "," + _bl + "," + _br;
 
-	image_index = global.block_lock_sprite_map[$ _key];
-}
-
+   image_index = global.block_lock_sprite_map[$ _key];
+};

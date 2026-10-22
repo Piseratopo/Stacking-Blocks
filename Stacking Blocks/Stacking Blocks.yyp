@@ -55,6 +55,7 @@
     {"id":{"name":"snd_juan_jp","path":"sounds/snd_juan_jp/snd_juan_jp.yy",},},
     {"id":{"name":"snd_tooth_jp","path":"sounds/snd_tooth_jp/snd_tooth_jp.yy",},},
     {"id":{"name":"snd_tree_jp","path":"sounds/snd_tree_jp/snd_tree_jp.yy",},},
+    {"id":{"name":"spr_back_symbol","path":"sprites/spr_back_symbol/spr_back_symbol.yy",},},
     {"id":{"name":"spr_border","path":"sprites/spr_border/spr_border.yy",},},
     {"id":{"name":"spr_button","path":"sprites/spr_button/spr_button.yy",},},
     {"id":{"name":"spr_D2","path":"sprites/spr_D2/spr_D2.yy",},},

@@ -11,7 +11,20 @@ if (flex_node != noone) {
 on_click = function() {
     switch (name) {
         case "play":
+            if (instance_exists(obj_ui_manager)) {
+                obj_ui_manager.show_play_mode_menu();
+            }
+            break;
+        case "singleplayer":
             room_goto(rm_singleplayer);
+            break;
+        case "multiplayer":
+            room_goto(rm_multiplayer);
+            break;
+        case "back":
+            if (instance_exists(obj_ui_manager)) {
+                obj_ui_manager.show_main_menu();
+            }
             break;
         case "options":
             // TODO: Implement options menu
